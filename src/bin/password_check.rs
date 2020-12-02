@@ -7,7 +7,12 @@ fn main() {
         std::io::stdin()
             .lock()
             .lines()
-            .filter(|line| passwords::check_line(line.as_ref().unwrap().as_str()).unwrap())
+            .filter(
+                |line| passwords::check_line::<passwords::LegacyPasswordPolicy>(
+                    line.as_ref().unwrap().as_str()
+                )
+                .unwrap()
+            )
             .count()
     );
 }
