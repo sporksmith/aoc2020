@@ -14,13 +14,20 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  testing:
+  tests:
     runs-on: ubuntu-latest
     container: rust:latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Unit tests
-        run: cargo test
-      - name: Integration tests
-        run: ./ci.sh
+      - uses: actions/checkout@v2
+      - run: cargo test
+      - run: ./ci.sh
+
+  cargo-check:
+    runs-on: ubuntu-latest
+    container: rust:latest
+    env:
+      RUSTFLAGS: -Dwarnings
+    steps:
+      - uses: actions/checkout@v2
+      - run: cargo check --workspace --all-targets --verbose --no-default-features
+      - run: cargo check --workspace --all-targets --verbose --all-features
