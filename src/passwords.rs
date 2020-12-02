@@ -62,16 +62,12 @@ pub fn parse_line(s: &str) -> Result<(PasswordPolicy, &str), Box<dyn Error>> {
 }
 
 /// ```
-/// use aoc2020::passwords::count_valid;
-/// assert_eq!(count_valid(["1-3 a: abcde","1-3 b: cdefg", "2-9 c: ccccccccc"].iter().copied()).unwrap(), 2);
+/// use aoc2020::passwords::check_line;
+/// assert!(check_line("1-3 a: abcde").unwrap());
+/// assert!(!check_line("1-3 b: cdefg").unwrap());
+/// assert!(check_line("2-9 c: ccccccccc").unwrap());
 /// ```
-pub fn count_valid<'a, It: Iterator<Item = &'a str>>(lines: It) -> Result<usize, Box<dyn Error>> {
-    let mut count = 0;
-    for line in lines {
-        let (policy, password) = parse_line(line)?;
-        if policy.check(password) {
-            count += 1;
-        }
-    }
-    Ok(count)
+pub fn check_line(line: &str) -> Result<bool, Box<dyn Error>> {
+    let (policy, password) = parse_line(line)?;
+    Ok(policy.check(password))
 }
