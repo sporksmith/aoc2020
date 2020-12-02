@@ -1,4 +1,4 @@
-use aoc2020::find_sum_factors;
+use aoc2020::factors::find_sum_factors;
 
 fn main() {
     use std::io::prelude::*;
