@@ -35,9 +35,43 @@ impl PasswordPolicy {
     /// assert!(PasswordPolicy{min: 1, max: 2, c: 'a'}.check("babb"));
     /// assert!(PasswordPolicy{min: 1, max: 2, c: 'a'}.check("babab"));
     /// assert!(!PasswordPolicy{min: 1, max: 2, c: 'a'}.check("bababa"));
+    ///
+    /// // Examples from problem statement:
+    /// assert!(PasswordPolicy{min: 1, max: 3, c: 'a'}.check("abcde"));
+    /// assert!(!PasswordPolicy{min: 1, max: 3, c: 'b'}.check("cdefg"));
+    /// assert!(PasswordPolicy{min: 2, max: 9, c: 'c'}.check("ccccccccc"));
     /// ```
     pub fn check(&self, password: &str) -> bool {
         let c = password.chars().filter(|c| c == &self.c).count();
         c >= self.min && c <= self.max
     }
+}
+
+/// ```
+/// use aoc2020::passwords::{PasswordPolicy, parse_line};
+/// assert_eq!(parse_line("1-3 a: abcde").unwrap(), (PasswordPolicy{min:1, max:3, c: 'a'}, "abcde"));
+/// ```
+pub fn parse_line(s: &str) -> Result<(PasswordPolicy, &str), Box<dyn Error>> {
+    let mut parts = s.splitn(2, ": ");
+    let policy = parts
+        .next()
+        .ok_or("Missing policy")?
+        .parse::<PasswordPolicy>()?;
+    let password = parts.next().ok_or("Missing password")?;
+    Ok((policy, password))
+}
+
+/// ```
+/// use aoc2020::passwords::count_valid;
+/// assert_eq!(count_valid(["1-3 a: abcde","1-3 b: cdefg", "2-9 c: ccccccccc"].iter().copied()).unwrap(), 2);
+/// ```
+pub fn count_valid<'a, It: Iterator<Item = &'a str>>(lines: It) -> Result<usize, Box<dyn Error>> {
+    let mut count = 0;
+    for line in lines {
+        let (policy, password) = parse_line(line)?;
+        if policy.check(password) {
+            count += 1;
+        }
+    }
+    Ok(count)
 }
