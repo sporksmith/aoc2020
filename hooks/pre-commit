@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# pre-commit hook, to be linked or copied to .git/hooks
+
+# Sanity checks
+set -euo pipefail
+
+export RUSTFLAGS=-Dwarnings
+
+# Echo commands
+set -v
+
+cargo test
+./ci.sh
+cargo check --workspace --all-targets --verbose --no-default-features
+cargo check --workspace --all-targets --verbose --all-features
+cargo fmt --all -- --check
+
