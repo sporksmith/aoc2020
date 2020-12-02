@@ -16,3 +16,4 @@ test() {
 }
 
 test 1a `cargo run --bin day1 -- 2 2020 < inputs/1a.txt` 1019371
+test 1b `cargo run --bin day1 -- 3 2020 < inputs/1a.txt` 278064990
