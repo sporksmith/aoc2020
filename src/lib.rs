@@ -40,12 +40,9 @@ pub fn find_sum_factors(n: u32, xs: &[i32], target: i32) -> Option<Vec<i32>> {
             for i in 1..xs.len() {
                 let (head, tail) = xs.split_at(i);
                 let head : i32 = *head.last().unwrap();
-                match find_sum_factors(n-1, tail, target-head) {
-                    Some(mut v) => {
-                        v.push(head);
-                        return Some(v)
-                    },
-                    None => ()
+                if let Some(mut v) = find_sum_factors(n-1, tail, target-head) {
+                    v.push(head);
+                    return Some(v)
                 }
             }
             None
