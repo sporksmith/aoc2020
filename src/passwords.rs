@@ -51,6 +51,47 @@ impl PasswordPolicy for LegacyPasswordPolicy {
     }
 }
 
+#[derive(PartialEq, Eq, Debug, Clone)]
+pub struct NewPasswordPolicy {
+    pub pos1: usize,
+    pub pos2: usize,
+    pub c: char,
+}
+
+impl FromStr for NewPasswordPolicy {
+    type Err = Box<dyn Error>;
+    /// ```
+    /// use aoc2020::passwords::NewPasswordPolicy;
+    /// assert_eq!("1-3 a".parse::<NewPasswordPolicy>().unwrap(), NewPasswordPolicy{pos1: 1, pos2: 3, c: 'a'});
+    /// ```
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        lazy_static! {
+            static ref RE: Regex = Regex::new(r"^(\d+)-(\d+) (\w)$").unwrap();
+        }
+        let captures = RE.captures(s).ok_or("Regex match")?;
+        let pos1: usize = captures.get(1).ok_or("Missing min")?.as_str().parse()?;
+        let pos2: usize = captures.get(2).ok_or("Missing max")?.as_str().parse()?;
+        let c: char = captures.get(3).ok_or("Missing char")?.as_str().parse()?;
+        Ok(NewPasswordPolicy { pos1, pos2, c })
+    }
+}
+
+impl PasswordPolicy for NewPasswordPolicy {
+    /// ```
+    /// use aoc2020::passwords::{PasswordPolicy, NewPasswordPolicy};
+    /// // Examples from problem statement:
+    /// assert!(NewPasswordPolicy{pos1: 1, pos2: 3, c: 'a'}.check("abcde"));
+    /// assert!(!NewPasswordPolicy{pos1: 1, pos2: 3, c: 'b'}.check("cdefg"));
+    /// assert!(!NewPasswordPolicy{pos1: 2, pos2: 9, c: 'c'}.check("ccccccccc"));
+    /// ```
+    fn check(&self, password: &str) -> bool {
+        let check_pos = |p: usize| password.chars().nth(p - 1).unwrap() == self.c;
+        let p1 = check_pos(self.pos1);
+        let p2 = check_pos(self.pos2);
+        (p1 || p2) && !(p1 && p2)
+    }
+}
+
 /// ```
 /// use aoc2020::passwords::{LegacyPasswordPolicy, parse_line};
 /// assert_eq!(parse_line("1-3 a: abcde").unwrap(), (LegacyPasswordPolicy{min:1, max:3, c: 'a'}, "abcde"));
