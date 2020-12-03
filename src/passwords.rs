@@ -32,8 +32,10 @@ impl FromStr for LegacyPasswordPolicy {
             static ref RE: Regex = Regex::new(r"^(\d+)-(\d+) (\w)$").unwrap();
         }
         let captures = RE.captures(s).ok_or("Regex match")?;
-        let min: usize = captures.get(1).ok_or("Missing min")?.as_str().parse()?;
-        let max: usize = captures.get(2).ok_or("Missing max")?.as_str().parse()?;
+        let min: usize =
+            captures.get(1).ok_or("Missing min")?.as_str().parse()?;
+        let max: usize =
+            captures.get(2).ok_or("Missing max")?.as_str().parse()?;
         let c: char = captures.get(3).ok_or("Missing max")?.as_str().parse()?;
         Ok(LegacyPasswordPolicy { min, max, c })
     }
@@ -83,9 +85,12 @@ impl FromStr for NewPasswordPolicy {
             static ref RE: Regex = Regex::new(r"^(\d+)-(\d+) (\w)$").unwrap();
         }
         let captures = RE.captures(s).ok_or("Regex match")?;
-        let pos1: usize = captures.get(1).ok_or("Missing min")?.as_str().parse()?;
-        let pos2: usize = captures.get(2).ok_or("Missing max")?.as_str().parse()?;
-        let c: char = captures.get(3).ok_or("Missing char")?.as_str().parse()?;
+        let pos1: usize =
+            captures.get(1).ok_or("Missing min")?.as_str().parse()?;
+        let pos2: usize =
+            captures.get(2).ok_or("Missing max")?.as_str().parse()?;
+        let c: char =
+            captures.get(3).ok_or("Missing char")?.as_str().parse()?;
         Ok(NewPasswordPolicy { pos1, pos2, c })
     }
 }
@@ -103,7 +108,8 @@ impl PasswordPolicy for NewPasswordPolicy {
     /// assert!(!NewPasswordPolicy{pos1: 2, pos2: 9, c: 'c'}.check("ccccccccc"));
     /// ```
     fn check(&self, password: &str) -> bool {
-        let check_pos = |p: usize| password.chars().nth(p - 1).unwrap() == self.c;
+        let check_pos =
+            |p: usize| password.chars().nth(p - 1).unwrap() == self.c;
         let p1 = check_pos(self.pos1);
         let p2 = check_pos(self.pos2);
         (p1 || p2) && !(p1 && p2)
