@@ -65,7 +65,7 @@ impl<R: BufRead> Iterator for BufReadSplitOnBlank<R> {
 }
 
 /// Represent a passport. For this part we don't actually need to store anything yet.
-struct Passport {}
+pub struct Passport {}
 
 /// Trait to create a passport from a set of key/value pairs.
 impl TryFrom<HashMap<String, String>> for Passport {
@@ -77,6 +77,98 @@ impl TryFrom<HashMap<String, String>> for Passport {
             }
         }
         Ok(Passport {})
+    }
+}
+
+/// Stricter passport, for part 2.
+pub struct StrictPassport {}
+
+fn parse_int_field(
+    name: &str,
+    s: &str,
+    min: i32,
+    max: i32,
+) -> Result<i32, Box<dyn Error>> {
+    let i: i32 = s.parse()?;
+    if !(i >= min && i <= max) {
+        return Err(format!("{}={} out of range", name, i).into());
+    }
+    Ok(i)
+}
+
+/// Trait to create a passport from a set of key/value pairs.
+impl TryFrom<HashMap<String, String>> for StrictPassport {
+    type Error = Box<dyn Error>;
+    fn try_from(value: HashMap<String, String>) -> Result<Self, Self::Error> {
+        parse_int_field(
+            "byr",
+            value.get("byr").ok_or_else(|| "Missing byr")?,
+            1920,
+            2002,
+        )?;
+        parse_int_field(
+            "iyr",
+            value.get("iyr").ok_or_else(|| "Missing iyr")?,
+            2010,
+            2020,
+        )?;
+        parse_int_field(
+            "eyr",
+            value.get("eyr").ok_or_else(|| "Missing eyr")?,
+            2020,
+            2030,
+        )?;
+
+        // Check hgt
+        {
+            let hgt = value.get("hgt").ok_or_else(|| "Missing hgt")?;
+            if hgt.len() < 2 {
+                return Err(format!("Bad hgt {}", hgt).into());
+            }
+            let (value, unit) = hgt.split_at(hgt.len() - 2);
+            let value: i32 = value.parse()?;
+            let range = match unit {
+                "in" => (59..=76),
+                "cm" => (150..=193),
+                _ => return Err(format!("hgt bad unit {}", unit).into()),
+            };
+            if !range.contains(&value) {
+                return Err(
+                    format!("hgt {}{} out of range", value, unit).into()
+                );
+            }
+        }
+
+        // Check hcl
+        {
+            let hcl = value.get("hcl").ok_or_else(|| "Missing hcl")?;
+            if !(hcl.starts_with('#')
+                && hcl.len() == 6
+                && hcl.chars().all(|c| c.is_digit(16)))
+            {
+                return Err(format!("bad hcl: {}", hcl).into());
+            }
+        }
+
+        // Check ecl
+        {
+            let ecl = value.get("ecl").ok_or_else(|| "Missing ecl")?;
+            if !["amb", "blu", "brn", "gry", "grn", "hzl", "oth"]
+                .contains(&ecl.as_str())
+            {
+                return Err(format!("bad ecl: {}", ecl).into());
+            }
+        }
+
+        // Check pid
+        {
+            let pid = value.get("pid").ok_or_else(|| "Missing pid")?;
+            if !(pid.len() == 9 && pid.chars().all(|c| c.is_digit(10))) {
+                return Err(format!("bad pid: {}", pid).into());
+            }
+        }
+
+        Ok(StrictPassport {})
     }
 }
 
@@ -98,9 +190,12 @@ impl TryFrom<HashMap<String, String>> for Passport {
 ///   hcl:#cfa07d eyr:2025 pid:166559648
 ///   iyr:2011 ecl:brn hgt:59in
 /// ";
-/// assert_eq!(count_valid_passports(Cursor::new(input.as_bytes())).unwrap(), 2);
+/// assert_eq!(count_valid_passports::<Passport, _>(Cursor::new(input.as_bytes())).unwrap(), 2);
 /// ```
-pub fn count_valid_passports<R: std::io::BufRead>(
+pub fn count_valid_passports<
+    P: TryFrom<HashMap<String, String>>,
+    R: std::io::BufRead,
+>(
     input: R,
 ) -> Result<usize, Box<dyn Error>> {
     // Try converting each chunk of text (separated by blank lines) into a passport, counting
@@ -133,7 +228,7 @@ pub fn count_valid_passports<R: std::io::BufRead>(
 
             // Add to running total iff can be converted into a passport.
             Ok(acc
-                + match Passport::try_from(m) {
+                + match P::try_from(m) {
                     Ok(_) => 1,
                     Err(_) => 0,
                 })
