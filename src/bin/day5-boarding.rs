@@ -1,5 +1,13 @@
 use std::error::Error;
 
+#[cfg(test)]
+#[test]
+fn test_seat_num() {
+    assert_eq!(seat_num("BFFFBBFRRR").unwrap(), 567);
+    assert_eq!(seat_num("FFFBBBFRRR").unwrap(), 119);
+    assert_eq!(seat_num("BBFFBBFRLL").unwrap(), 820);
+}
+
 fn seat_num(s: &str) -> Result<usize, std::num::ParseIntError> {
     let s = s.chars().map(|x| match x {
         'F' => '0',
@@ -11,6 +19,17 @@ fn seat_num(s: &str) -> Result<usize, std::num::ParseIntError> {
     usize::from_str_radix(s.collect::<String>().as_str(), 2)
 }
 
+#[cfg(test)]
+#[test]
+fn test_highest_seat_id() {
+    use std::io::Cursor;
+    assert_eq!(
+        highest_seat_id(Cursor::new("BFFFBBFRRR\nFFFBBBFRRR\nBBFFBBFRLL"))
+            .unwrap(),
+        820
+    );
+}
+
 pub fn highest_seat_id<R: std::io::BufRead>(
     reader: R,
 ) -> Result<usize, Box<dyn Error>> {
@@ -20,6 +39,20 @@ pub fn highest_seat_id<R: std::io::BufRead>(
         });
     result_nums
         .try_fold(0, |acc, result_num| Ok(std::cmp::max(acc, result_num?)))
+}
+
+#[cfg(test)]
+#[test]
+fn test_missing_seat_id() {
+    use std::io::Cursor;
+    assert_eq!(
+        // 117, 567, 119, 820
+        missing_seat_id(Cursor::new(
+            "FFFBBBFRLR\nBFFFBBFRRR\nFFFBBBFRRR\nBBFFBBFRLL"
+        ))
+        .unwrap(),
+        118
+    );
 }
 
 pub fn missing_seat_id<R: std::io::BufRead>(
@@ -41,34 +74,12 @@ pub fn missing_seat_id<R: std::io::BufRead>(
     Err("Not found".into())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn part1_examples() {
-        assert_eq!(seat_num("BFFFBBFRRR").unwrap(), 567);
-        assert_eq!(seat_num("FFFBBBFRRR").unwrap(), 119);
-        assert_eq!(seat_num("BBFFBBFRLL").unwrap(), 820);
-
-        use std::io::Cursor;
-        assert_eq!(
-            highest_seat_id(Cursor::new("BFFFBBFRRR\nFFFBBBFRRR\nBBFFBBFRLL"))
-                .unwrap(),
-            820
-        );
-    }
-
-    #[test]
-    fn part2_examples() {
-        use std::io::Cursor;
-        assert_eq!(
-            // 117, 567, 119, 820
-            missing_seat_id(Cursor::new(
-                "FFFBBBFRLR\nBFFFBBFRRR\nFFFBBBFRRR\nBBFFBBFRLL"
-            ))
-            .unwrap(),
-            118
-        );
-    }
+fn main() {
+    let part = std::env::args().nth(1).expect("missing part");
+    let fun = match part.as_str() {
+        "a" => highest_seat_id,
+        "b" => missing_seat_id,
+        _ => panic!("Bad part {}", part),
+    };
+    println!("{}", fun(std::io::stdin().lock()).unwrap());
 }
