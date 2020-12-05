@@ -3,6 +3,22 @@ use std::convert::TryFrom;
 use std::error::Error;
 use std::io::BufRead;
 
+/// ```
+/// use aoc2020::passport::parse_key_val;
+/// assert_eq!(parse_key_val("key:val"), ("key", "val"));
+/// assert_eq!(parse_key_val("key:"), ("key", ""));
+/// assert_eq!(parse_key_val("key"), ("key", ""));
+/// assert_eq!(parse_key_val(""), ("", ""));
+/// ```
+pub fn parse_key_val(s: &str) -> (&str, &str) {
+    let mut key_val_seq = s.splitn(2, ':');
+    // XXX: Yuck.
+    let key = key_val_seq.next().unwrap_or("");
+    let val = key_val_seq.next().unwrap_or("");
+    assert!(key_val_seq.next().is_none());
+    (key, val)
+}
+
 pub struct BufReadSplitOnBlank<R: BufRead> {
     lines: std::io::Lines<R>,
     done: bool,
@@ -211,20 +227,10 @@ pub fn count_valid_passports<
                 lines.iter().map(|l| l.split_ascii_whitespace()).flatten();
 
             // Convert tokens to a hashmap
-            let mut m = HashMap::<String, String>::new();
-            for token in tokens {
-                let mut key_val_seq = token.splitn(2, ':');
-                // XXX: Yuck.
-                let key = key_val_seq.next().ok_or_else(|| {
-                    let e: Box<dyn Error> = "Missing key".into();
-                    e
-                })?;
-                let val = key_val_seq.next().ok_or_else(|| {
-                    let e: Box<dyn Error> = "Missing val".into();
-                    e
-                })?;
-                m.insert(key.into(), val.into());
-            }
+            let m: HashMap<String, String> = tokens
+                .map(parse_key_val)
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect();
 
             // Add to running total iff can be converted into a passport.
             Ok(acc
