@@ -32,7 +32,7 @@ pub fn missing_seat_id<R: std::io::BufRead>(
         })
         .collect();
     let mut nums = nums?;
-    nums.sort();
+    nums.sort_unstable();
     for (num, next) in nums.iter().zip(nums.iter().skip(1)) {
         if *next == num + 2 {
             return Ok(num + 1);
