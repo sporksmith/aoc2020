@@ -285,14 +285,11 @@ pub fn count_valid_passports<
                 lines.iter().map(|l| l.split_ascii_whitespace()).flatten();
 
             // Convert tokens to a hashmap
-            let m: HashMap<String, String> = tokens
-                .map(parse_key_val)
-                .map(|(k, v)| (k.to_string(), v.to_string()))
-                .collect();
+            let map = key_val_lines_to_hashmap(tokens);
 
             // Add to running total iff can be converted into a passport.
             Ok(acc
-                + match P::try_from(m) {
+                + match P::try_from(map) {
                     Ok(_) => 1,
                     Err(_) => 0,
                 })
