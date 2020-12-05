@@ -1,8 +1,8 @@
-use aoc2020::passport::count_valid_passports;
+use aoc2020::passport::{count_valid_passports, Passport};
 
 fn main() {
     println!(
         "{}",
-        count_valid_passports(std::io::stdin().lock()).unwrap()
+        count_valid_passports::<Passport, _>(std::io::stdin().lock()).unwrap()
     );
 }
