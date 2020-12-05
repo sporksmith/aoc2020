@@ -3,22 +3,6 @@ use std::convert::TryFrom;
 use std::error::Error;
 use std::io::BufRead;
 
-/// ```
-/// use aoc2020::passport::parse_key_val;
-/// assert_eq!(parse_key_val("key:val"), ("key", "val"));
-/// assert_eq!(parse_key_val("key:"), ("key", ""));
-/// assert_eq!(parse_key_val("key"), ("key", ""));
-/// assert_eq!(parse_key_val(""), ("", ""));
-/// ```
-pub fn parse_key_val(s: &str) -> (&str, &str) {
-    let mut key_val_seq = s.splitn(2, ':');
-    // XXX: Yuck.
-    let key = key_val_seq.next().unwrap_or("");
-    let val = key_val_seq.next().unwrap_or("");
-    assert!(key_val_seq.next().is_none());
-    (key, val)
-}
-
 pub struct BufReadSplitOnBlank<R: BufRead> {
     lines: std::io::Lines<R>,
     done: bool,
@@ -80,6 +64,41 @@ impl<R: BufRead> Iterator for BufReadSplitOnBlank<R> {
     }
 }
 
+/// ```
+/// use aoc2020::passport::parse_key_val;
+/// assert_eq!(parse_key_val("key:val"), ("key", "val"));
+/// assert_eq!(parse_key_val("key:"), ("key", ""));
+/// assert_eq!(parse_key_val("key"), ("key", ""));
+/// assert_eq!(parse_key_val(""), ("", ""));
+/// ```
+pub fn parse_key_val(s: &str) -> (&str, &str) {
+    let mut key_val_seq = s.splitn(2, ':');
+    // XXX: Yuck.
+    let key = key_val_seq.next().unwrap_or("");
+    let val = key_val_seq.next().unwrap_or("");
+    assert!(key_val_seq.next().is_none());
+    (key, val)
+}
+
+/// ```
+/// use aoc2020::passport::key_val_lines_to_hashmap;
+/// assert_eq!(key_val_lines_to_hashmap(["k1:v1 k2:v2", "k3:v3"].iter().copied()),
+///            [("k1".to_string(), "v1".to_string()), ("k2".to_string(), "v2".to_string()),
+///            ("k3".to_string(), "v3".to_string())].iter().cloned().collect());
+/// ```
+pub fn key_val_lines_to_hashmap<'a, I: Iterator<Item = &'a str>>(
+    it: I,
+) -> HashMap<String, String> {
+    // Convert vector of lines into a flat iterator over tokens
+    let tokens = it.map(|l| l.split_ascii_whitespace()).flatten();
+
+    // Convert tokens to a hashmap
+    tokens
+        .map(parse_key_val)
+        .map(|(k, v)| (k.to_string(), v.to_string()))
+        .collect()
+}
+
 /// Represent a passport. For this part we don't actually need to store anything yet.
 pub struct Passport {}
 
@@ -113,6 +132,44 @@ fn parse_int_field(
 }
 
 /// Trait to create a passport from a set of key/value pairs.
+///
+/// ```
+/// use aoc2020::passport::*;
+/// use std::convert::TryFrom;
+///
+/// StrictPassport::try_from(key_val_lines_to_hashmap(["
+/// pid:087499704 hgt:74in ecl:grn iyr:2012 eyr:2030 byr:1980\n\
+/// hcl:#623a2f
+/// "].iter().copied())).unwrap();
+///
+/// StrictPassport::try_from(key_val_lines_to_hashmap(["
+/// eyr:2029 ecl:blu cid:129 byr:1989 iyr:2014 pid:896056539 hcl:#a97842 hgt:165cm
+/// "].iter().copied())).unwrap();
+///
+/// StrictPassport::try_from(key_val_lines_to_hashmap(["
+/// hcl:#888785 hgt:164cm byr:2001 iyr:2015 cid:88 pid:545766238 ecl:hzl eyr:2022
+/// "].iter().copied())).unwrap();
+///
+/// StrictPassport::try_from(key_val_lines_to_hashmap(["
+/// iyr:2010 hgt:158cm hcl:#b6652a ecl:blu byr:1944 eyr:2021 pid:093154719
+/// "].iter().copied())).unwrap();
+///
+/// assert!(StrictPassport::try_from(key_val_lines_to_hashmap(["
+/// eyr:1972 cid:100 hcl:#18171d ecl:amb hgt:170 pid:186cm iyr:2018 byr:1926
+/// "].iter().copied())).is_err());
+///
+/// assert!(StrictPassport::try_from(key_val_lines_to_hashmap(["
+/// iyr:2019 hcl:#602927 eyr:1967 hgt:170cm ecl:grn pid:012533040 byr:1946
+/// "].iter().copied())).is_err());
+///
+/// assert!(StrictPassport::try_from(key_val_lines_to_hashmap(["
+/// hcl:dab227 iyr:2012 ecl:brn hgt:182cm pid:021572410 eyr:2020 byr:1992 cid:277
+/// "].iter().copied())).is_err());
+///
+/// assert!(StrictPassport::try_from(key_val_lines_to_hashmap(["
+/// hgt:59cm ecl:zzz eyr:2038 hcl:74454a iyr:2023 pid:3556412378 byr:2007
+/// "].iter().copied())).is_err());
+/// ```
 impl TryFrom<HashMap<String, String>> for StrictPassport {
     type Error = Box<dyn Error>;
     fn try_from(value: HashMap<String, String>) -> Result<Self, Self::Error> {
@@ -158,11 +215,12 @@ impl TryFrom<HashMap<String, String>> for StrictPassport {
         // Check hcl
         {
             let hcl = value.get("hcl").ok_or_else(|| "Missing hcl")?;
-            if !(hcl.starts_with('#')
-                && hcl.len() == 6
-                && hcl.chars().all(|c| c.is_digit(16)))
-            {
-                return Err(format!("bad hcl: {}", hcl).into());
+            if !(hcl.starts_with('#')) {
+                return Err(format!("hcl missing #: {}", hcl).into());
+            }
+            let (_, val) = hcl.split_at(1);
+            if !(val.len() == 6 && val.chars().all(|c| c.is_digit(16))) {
+                return Err(format!("bad hcl val: {}", val).into());
             }
         }
 
