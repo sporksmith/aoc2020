@@ -54,7 +54,7 @@ impl<R: BufRead> Iterator for BufReadSplitOnBlank<R> {
             if line == "" {
                 break;
             }
-            rv.push(line.into());
+            rv.push(line);
         }
         if self.done && rv.is_empty() {
             None
@@ -76,7 +76,7 @@ impl TryFrom<HashMap<String, String>> for Passport {
                 return Err(format!("Missing key {}", key));
             }
         }
-        return Ok(Passport {});
+        Ok(Passport {})
     }
 }
 
@@ -118,7 +118,7 @@ pub fn count_valid_passports<R: std::io::BufRead>(
             // Convert tokens to a hashmap
             let mut m = HashMap::<String, String>::new();
             for token in tokens {
-                let mut key_val_seq = token.splitn(2, ":");
+                let mut key_val_seq = token.splitn(2, ':');
                 // XXX: Yuck.
                 let key = key_val_seq.next().ok_or_else(|| {
                     let e: Box<dyn Error> = "Missing key".into();
