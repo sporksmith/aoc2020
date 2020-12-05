@@ -73,3 +73,13 @@ pub fn missing_seat_id<R: std::io::BufRead>(
     }
     Err("Not found".into())
 }
+
+fn main() {
+    let part = std::env::args().nth(1).expect("missing part");
+    let fun = match part.as_str() {
+        "a" => highest_seat_id,
+        "b" => missing_seat_id,
+        _ => panic!("Bad part {}", part),
+    };
+    println!("{}", fun(std::io::stdin().lock()).unwrap());
+}
