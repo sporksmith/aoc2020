@@ -175,26 +175,26 @@ impl TryFrom<HashMap<String, String>> for StrictPassport {
     fn try_from(value: HashMap<String, String>) -> Result<Self, Self::Error> {
         parse_int_field(
             "byr",
-            value.get("byr").ok_or_else(|| "Missing byr")?,
+            value.get("byr").ok_or("Missing byr")?,
             1920,
             2002,
         )?;
         parse_int_field(
             "iyr",
-            value.get("iyr").ok_or_else(|| "Missing iyr")?,
+            value.get("iyr").ok_or("Missing iyr")?,
             2010,
             2020,
         )?;
         parse_int_field(
             "eyr",
-            value.get("eyr").ok_or_else(|| "Missing eyr")?,
+            value.get("eyr").ok_or("Missing eyr")?,
             2020,
             2030,
         )?;
 
         // Check hgt
         {
-            let hgt = value.get("hgt").ok_or_else(|| "Missing hgt")?;
+            let hgt = value.get("hgt").ok_or("Missing hgt")?;
             if hgt.len() < 2 {
                 return Err(format!("Bad hgt {}", hgt).into());
             }
@@ -214,7 +214,7 @@ impl TryFrom<HashMap<String, String>> for StrictPassport {
 
         // Check hcl
         {
-            let hcl = value.get("hcl").ok_or_else(|| "Missing hcl")?;
+            let hcl = value.get("hcl").ok_or("Missing hcl")?;
             if !(hcl.starts_with('#')) {
                 return Err(format!("hcl missing #: {}", hcl).into());
             }
@@ -226,7 +226,7 @@ impl TryFrom<HashMap<String, String>> for StrictPassport {
 
         // Check ecl
         {
-            let ecl = value.get("ecl").ok_or_else(|| "Missing ecl")?;
+            let ecl = value.get("ecl").ok_or("Missing ecl")?;
             if !["amb", "blu", "brn", "gry", "grn", "hzl", "oth"]
                 .contains(&ecl.as_str())
             {
@@ -236,7 +236,7 @@ impl TryFrom<HashMap<String, String>> for StrictPassport {
 
         // Check pid
         {
-            let pid = value.get("pid").ok_or_else(|| "Missing pid")?;
+            let pid = value.get("pid").ok_or("Missing pid")?;
             if !(pid.len() == 9 && pid.chars().all(|c| c.is_digit(10))) {
                 return Err(format!("bad pid: {}", pid).into());
             }
