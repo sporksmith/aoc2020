@@ -26,3 +26,4 @@ test 3b71 `cargo run --bin toboggan -- 7 1 < inputs/day3` 67
 test 3b12 `cargo run --bin toboggan -- 1 2 < inputs/day3` 24
 test 4ba `cargo run --bin passport < inputs/day4` 170
 test 4bb `cargo run --bin strict_passport < inputs/day4` 103
+test 5a `cargo run --bin max_boarding < inputs/day5` 915
