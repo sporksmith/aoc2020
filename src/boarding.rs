@@ -22,6 +22,25 @@ pub fn highest_seat_id<R: std::io::BufRead>(
         .try_fold(0, |acc, result_num| Ok(std::cmp::max(acc, result_num?)))
 }
 
+pub fn missing_seat_id<R: std::io::BufRead>(
+    reader: R,
+) -> Result<usize, Box<dyn Error>> {
+    let nums: Result<Vec<usize>, Box<dyn Error>> = reader
+        .lines()
+        .map(|l| -> Result<usize, Box<dyn Error>> {
+            Ok(seat_num(l?.as_str())?)
+        })
+        .collect();
+    let mut nums = nums?;
+    nums.sort();
+    for (num, next) in nums.iter().zip(nums.iter().skip(1)) {
+        if *next == num + 2 {
+            return Ok(num + 1);
+        }
+    }
+    Err("Not found".into())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -37,6 +56,19 @@ mod tests {
             highest_seat_id(Cursor::new("BFFFBBFRRR\nFFFBBBFRRR\nBBFFBBFRLL"))
                 .unwrap(),
             820
+        );
+    }
+
+    #[test]
+    fn part2_examples() {
+        use std::io::Cursor;
+        assert_eq!(
+            // 117, 567, 119, 820
+            missing_seat_id(Cursor::new(
+                "FFFBBBFRLR\nBFFFBBFRRR\nFFFBBBFRRR\nBBFFBBFRLL"
+            ))
+            .unwrap(),
+            118
         );
     }
 }
