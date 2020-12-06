@@ -29,3 +29,4 @@ test 4b `cargo run --bin day4-passport b < inputs/day4` 103
 test 5a `cargo run --bin day5-boarding a < inputs/day5` 915
 test 5a `cargo run --bin day5-boarding b < inputs/day5` 699
 test 6a `cargo run --bin day6-customs a < inputs/day6` 6504
+test 6a `cargo run --bin day6-customs b < inputs/day6` 3351
