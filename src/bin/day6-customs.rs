@@ -1,18 +1,6 @@
 use aoc2020::BufReadSplitOnBlank;
-use std::error::Error;
 use std::collections::HashSet;
-
-fn unique_answers<'a, I: Iterator<Item=&'a String>>(
-    strings: I,
-) -> usize {
-    strings
-        .fold(HashSet::<char>::new (), | mut acc, s |
-                  {
-                      s.chars().for_each(| c | {acc.insert(c);});
-                      acc
-                  })
-        .len()
-}
+use std::error::Error;
 
 fn sum_of_unique_answers<R: std::io::BufRead>(
     reader: R,
@@ -20,7 +8,12 @@ fn sum_of_unique_answers<R: std::io::BufRead>(
     let mut sum = 0;
     let groups = BufReadSplitOnBlank::new(reader);
     for res in groups {
-        sum += unique_answers(res?.iter());
+        let lines = res?;
+        let mut hs = HashSet::new();
+        for c in lines.iter().map(|l| l.chars()).flatten() {
+            hs.insert(c);
+        }
+        sum += hs.len();
     }
     Ok(sum)
 }
@@ -46,8 +39,7 @@ a
 
 b";
     assert_eq!(
-        sum_of_unique_answers(Cursor::new(input.as_bytes()))
-            .unwrap(),
+        sum_of_unique_answers(Cursor::new(input.as_bytes())).unwrap(),
         11
     );
 }

@@ -1,5 +1,5 @@
-use std::io::BufRead;
 use std::error::Error;
+use std::io::BufRead;
 
 pub mod factors;
 pub mod passwords;

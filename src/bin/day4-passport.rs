@@ -1,7 +1,7 @@
+use aoc2020::BufReadSplitOnBlank;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::error::Error;
-use aoc2020::BufReadSplitOnBlank;
 
 pub fn parse_key_val(s: &str) -> (&str, &str) {
     let mut key_val_seq = s.splitn(2, ':');
