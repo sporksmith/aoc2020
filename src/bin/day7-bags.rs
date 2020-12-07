@@ -35,17 +35,20 @@ impl FromStr for Rule {
         assert!(contains_split.next().is_none());
 
         let mut inner = Vec::<(usize, BagColor)>::new();
-        for s in inner_string.split(", ") {
-            // trim potential 's' in "bags"
-            let s = s.trim_end_matches('s');
+        if !inner_string.starts_with("no other") {
+            for s in inner_string.split(", ") {
+                // trim potential 's' in "bags"
+                let s = s.trim_end_matches('s');
 
-            // trim "bag"
-            let s = s.trim_end_matches(" bag");
+                // trim "bag"
+                let s = s.trim_end_matches(" bag");
 
-            let mut n_and_color = s.splitn(2, ' ');
-            let n = n_and_color.next().ok_or("No n")?.parse()?;
-            let color = BagColor(n_and_color.next().ok_or("No color")?.into());
-            inner.push((n, color));
+                let mut n_and_color = s.splitn(2, ' ');
+                let n = n_and_color.next().ok_or("No n")?.parse()?;
+                let color =
+                    BagColor(n_and_color.next().ok_or("No color")?.into());
+                inner.push((n, color));
+            }
         }
         Ok(Rule { outer, inner })
     }
@@ -128,6 +131,13 @@ mod test {
                 inner: vec![(1, BagColor("shiny gold".into()))]
             }
         );
+        assert_eq!(
+            Rule::from_str("bright white bags contain no other bags.").unwrap(),
+            Rule {
+                outer: BagColor("bright white".into()),
+                inner: vec![]
+            }
+        );
     }
 
     #[test]
@@ -179,5 +189,22 @@ bright white bags contain 1 shiny gold bag.";
             inner: vec![(1, BagColor("indirect".into()))],
         });
         assert_eq!(number_of_outer_bags_that_could_have_shiny(&rules), 2);
+    }
+
+    #[test]
+    fn test_sample_input() {
+        use std::io::Cursor;
+        let input = "\
+light red bags contain 1 bright white bag, 2 muted yellow bags.
+dark orange bags contain 3 bright white bags, 4 muted yellow bags.
+bright white bags contain 1 shiny gold bag.
+muted yellow bags contain 2 shiny gold bags, 9 faded blue bags.
+shiny gold bags contain 1 dark olive bag, 2 vibrant plum bags.
+dark olive bags contain 3 faded blue bags, 4 dotted black bags.
+vibrant plum bags contain 5 faded blue bags, 6 dotted black bags.
+faded blue bags contain no other bags.
+dotted black bags contain no other bags.";
+        let rules = parse_input(Cursor::new(input.as_bytes())).unwrap();
+        assert_eq!(number_of_outer_bags_that_could_have_shiny(&rules), 4);
     }
 }
