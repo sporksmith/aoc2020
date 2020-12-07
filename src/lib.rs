@@ -37,7 +37,7 @@ impl<R: BufRead> Iterator for BufReadSplitOnBlank<R> {
                 Some(Err(e)) => return Some(Err(e.into())),
                 Some(Ok(l)) => l,
             };
-            if line == "" {
+            if line.is_empty() {
                 break;
             }
             rv.push(line);

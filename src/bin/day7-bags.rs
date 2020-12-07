@@ -64,21 +64,21 @@ fn parse_input<R: BufRead>(reader: R) -> Result<Vec<Rule>, Box<dyn Error>> {
 }
 
 fn build_inner_to_outer_map(
-    rules: &Vec<Rule>,
+    rules: &[Rule],
 ) -> HashMap<&BagColor, HashSet<&BagColor>> {
     let mut result = HashMap::new();
     for rule in rules {
         for inner in &rule.inner {
             result
                 .entry(&inner.1)
-                .or_insert_with(|| HashSet::new())
+                .or_insert_with(HashSet::new)
                 .insert(&rule.outer);
         }
     }
     result
 }
 
-fn number_of_outer_bags_that_could_have_shiny(rules: &Vec<Rule>) -> usize {
+fn number_of_outer_bags_that_could_have_shiny(rules: &[Rule]) -> usize {
     let inner_to_outer_map = build_inner_to_outer_map(&rules);
     let start_point = BagColor("shiny gold".into());
     let mut to_visit = vec![&start_point];

@@ -12,10 +12,10 @@ set -v
 
 cargo test
 ./ci.sh
-cargo check --workspace --all-targets --verbose --no-default-features
 cargo clippy --workspace --all-targets --verbose --no-default-features
+cargo check --workspace --all-targets --verbose --no-default-features
 
-cargo check --workspace --all-targets --verbose --all-features
 cargo clippy --workspace --all-targets --verbose --all-features
+cargo check --workspace --all-targets --verbose --all-features
 cargo fmt --all -- --check
 
