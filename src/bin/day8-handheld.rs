@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::io::BufRead;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 enum Insn {
     Nop(i32),
     Jmp(i32),
@@ -83,11 +83,36 @@ fn acc_at_loop(program: Vec<Insn>) -> i32 {
     hh.acc
 }
 
+fn acc_after_fix(program: Vec<Insn>) -> i32 {
+    for pc in 0..program.len() {
+        let new_insn = match &program[pc] {
+            Insn::Nop(i) => Insn::Jmp(*i),
+            Insn::Jmp(i) => Insn::Nop(*i),
+            _ => continue,
+        };
+        // XXX: Could avoid copying the whole program every time by either having Handheld only
+        // take a reference to the program, or providing a way to get it back out. Doesn't matter
+        // for now.
+        let mut mutated_program = program.clone();
+        mutated_program[pc] = new_insn;
+        let mut hh = Handheld::new(mutated_program);
+        while hh.state == RunState::Running {
+            hh.step();
+        }
+        if hh.state == RunState::Done {
+            return hh.acc;
+        }
+        assert_eq!(hh.state, RunState::Looped)
+    }
+    panic!("Unfixable")
+}
+
 fn main() {
     let program = parse_program(std::io::stdin().lock());
     let part = std::env::args().nth(1).expect("missing part");
     let res = match part.as_str() {
         "a" => acc_at_loop(program),
+        "b" => acc_after_fix(program),
         _ => panic!("Bad part {}", part),
     };
     println!("{}", res);
@@ -111,6 +136,7 @@ acc +1
 jmp -4
 acc +6";
         let program = parse_program(Cursor::new(input.as_bytes()));
-        assert_eq!(acc_at_loop(program), 5);
+        assert_eq!(acc_at_loop(program.clone()), 5);
+        assert_eq!(acc_after_fix(program), 8);
     }
 }

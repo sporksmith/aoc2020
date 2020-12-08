@@ -33,3 +33,4 @@ test 6a `cargo run --bin day6-customs b < inputs/day6` 3351
 test 7a `cargo run --bin day7-bags a < inputs/day7` 265
 test 7b `cargo run --bin day7-bags b < inputs/day7` 14177
 test 8a `cargo run --bin day8-handheld a < inputs/day8` 2080
+test 8b `cargo run --bin day8-handheld b < inputs/day8` 2477
