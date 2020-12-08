@@ -101,11 +101,54 @@ fn number_of_outer_bags_that_could_have_shiny(rules: &[Rule]) -> usize {
     visited.len()
 }
 
+fn number_of_bags_in_bag_helper<'a>(
+    rules_map: &HashMap<&BagColor, &'a Rule>,
+    answer_map: &mut HashMap<&'a BagColor, usize>,
+    color: &'a BagColor,
+) -> usize {
+    if let Some(u) = answer_map.get(color) {
+        return *u;
+    }
+    // A missing rule could be reasonably be interpreted
+    // as that color being allowed 0 bags, but unless we see that case I'd rather
+    // panic here and double-check that the input really is missing the rule.
+    let rule = rules_map.get(color).expect("Missing rule");
+
+    let sum = rule
+        .inner
+        .iter()
+        .map(|(n, color)| {
+            *n + *n * number_of_bags_in_bag_helper(rules_map, answer_map, color)
+        })
+        .sum();
+    answer_map.insert(color, sum);
+    sum
+}
+
+fn number_of_bags_in_shiny(rules: &[Rule]) -> usize {
+    let mut rules_map = HashMap::<&BagColor, &Rule>::new();
+    for rule in rules {
+        rules_map.insert(&rule.outer, rule);
+    }
+    // Drop mutability
+    let rules_map = rules_map;
+
+    // Memo-table
+    let mut answer_map = HashMap::new();
+
+    number_of_bags_in_bag_helper(
+        &rules_map,
+        &mut answer_map,
+        &BagColor("shiny gold".into()),
+    )
+}
+
 fn main() {
     let rules = parse_input(std::io::stdin().lock()).unwrap();
     let part = std::env::args().nth(1).expect("missing part");
     let res = match part.as_str() {
         "a" => number_of_outer_bags_that_could_have_shiny(&rules),
+        "b" => number_of_bags_in_shiny(&rules),
         _ => panic!("Bad part {}", part),
     };
     println!("{}", res);
@@ -192,6 +235,27 @@ bright white bags contain 1 shiny gold bag.";
     }
 
     #[test]
+    fn test_number_of_bags_in_shiny() {
+        let rules = vec![Rule {
+            outer: BagColor("shiny gold".into()),
+            inner: vec![],
+        }];
+        assert_eq!(number_of_bags_in_shiny(&rules), 0);
+
+        let rules = vec![
+            Rule {
+                outer: BagColor("shiny gold".into()),
+                inner: vec![(2, BagColor("gray".into()))],
+            },
+            Rule {
+                outer: BagColor("gray".into()),
+                inner: vec![],
+            },
+        ];
+        assert_eq!(number_of_bags_in_shiny(&rules), 2);
+    }
+
+    #[test]
     fn test_sample_input() {
         use std::io::Cursor;
         let input = "\
@@ -206,5 +270,17 @@ faded blue bags contain no other bags.
 dotted black bags contain no other bags.";
         let rules = parse_input(Cursor::new(input.as_bytes())).unwrap();
         assert_eq!(number_of_outer_bags_that_could_have_shiny(&rules), 4);
+        assert_eq!(number_of_bags_in_shiny(&rules), 32);
+
+        let input = "\
+shiny gold bags contain 2 dark red bags.
+dark red bags contain 2 dark orange bags.
+dark orange bags contain 2 dark yellow bags.
+dark yellow bags contain 2 dark green bags.
+dark green bags contain 2 dark blue bags.
+dark blue bags contain 2 dark violet bags.
+dark violet bags contain no other bags.";
+        let rules = parse_input(Cursor::new(input.as_bytes())).unwrap();
+        assert_eq!(number_of_bags_in_shiny(&rules), 126);
     }
 }
