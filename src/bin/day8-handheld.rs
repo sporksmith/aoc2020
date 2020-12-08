@@ -84,7 +84,17 @@ fn acc_at_loop(program: Vec<Insn>) -> i32 {
 }
 
 fn acc_after_fix(program: Vec<Insn>) -> i32 {
-    for pc in 0..program.len() {
+    // We only need to consider changing instructions that actually execute in
+    // the broken version.
+    let candidate_pcs = {
+        let mut hh = Handheld::new(program.clone());
+        while hh.state != RunState::Looped {
+            hh.step();
+        }
+        hh.pcs_executed
+    };
+
+    for pc in candidate_pcs {
         let new_insn = match &program[pc] {
             Insn::Nop(i) => Insn::Jmp(*i),
             Insn::Jmp(i) => Insn::Nop(*i),
