@@ -22,21 +22,23 @@ pub fn part1(nums: &[u64], n: usize) -> u64 {
 
 pub fn part2(nums: &[u64], n: usize) -> usize {
     let target = part1(&nums, n);
-    for low in 0..nums.len() {
-        let mut sum = nums[low];
-        for high in (low + 1)..nums.len() {
-            sum += nums[high];
-            if sum == target {
-                return (nums[low..=high].iter().min().unwrap()
-                    + nums[low..=high].iter().max().unwrap())
-                    as usize;
-            }
-            if sum > target {
-                break;
-            }
+    let mut lo = 0;
+    let mut hi = 1;
+    let mut sum = nums[lo] + nums[hi];
+    // Structure of this loop was definitely inspired by seeing
+    // https://github.com/AxlLind/AdventOfCode2020/blob/537508ca5abc08198ed65cb8240ac9f174d37b7a/src/bin/09.rs#L18
+    while sum != target {
+        // Consider bumping `lo` up, being careful not to pass `hi`.
+        if sum > target && ((lo + 1) <= hi) {
+            sum -= nums[lo];
+            lo += 1;
+        } else {
+            hi += 1;
+            sum += nums[hi];
         }
     }
-    panic!("Not found");
+    let seq = &nums[lo..=hi];
+    (seq.iter().max().unwrap() + seq.iter().min().unwrap()) as usize
 }
 
 #[cfg(test)]
