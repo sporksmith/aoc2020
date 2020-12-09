@@ -4,7 +4,7 @@ These are my solutions to [Advent of Code
 `ci.sh` compiles and runs all solutions, validating that the results (still)
 match the confirmed correct answers for my inputs, which are in `inputs`.
 
-Some self-imposed goals, for practice:
+In some of the earlier days I had some additional self-imposed goals, for practice:
 
 * When feasible, process input a line/chunk at a time rather than reading the
   entire input into memory. This is overkill for the input sizes given, but is
@@ -18,3 +18,4 @@ from environments where we *wouldn't* want to panic, without having to be
 rewritten. Again this is overkill for advent-of-code itself, but I'm using
 advent-of-code to practice the relevant techniques.
 
+In later days (after 6 or so) I abandoned both for expediency and succinctness :).
