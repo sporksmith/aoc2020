@@ -30,7 +30,15 @@ test 5a `cargo run --bin day5-boarding a < inputs/day5` 915
 test 5a `cargo run --bin day5-boarding b < inputs/day5` 699
 test 6a `cargo run --bin day6-customs a < inputs/day6` 6504
 test 6a `cargo run --bin day6-customs b < inputs/day6` 3351
-test 7a `cargo run --bin day7-bags a < inputs/day7` 265
-test 7b `cargo run --bin day7-bags b < inputs/day7` 14177
-test 8a `cargo run --bin day8-handheld a < inputs/day8` 2080
-test 8b `cargo run --bin day8-handheld b < inputs/day8` 2477
+
+unified_test() {
+    day=$1
+    part=$2
+    expected=$3
+    test $day$part `cargo run --bin aoc2020 $day$part < inputs/day$day` $3
+}
+
+unified_test 7 a 265
+unified_test 7 b 14177
+unified_test 8 a 2080
+unified_test 8 b 2477

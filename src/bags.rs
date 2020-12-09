@@ -6,10 +6,10 @@ use std::str::FromStr;
 // TODO: On large input, could save substantial memory and comparison/hashing
 // by interning the color strings.
 #[derive(Debug, PartialEq, Eq, Hash)]
-struct BagColor(String);
+pub struct BagColor(String);
 
 #[derive(Debug, PartialEq, Eq)]
-struct Rule {
+pub struct Rule {
     outer: BagColor,
     inner: Vec<(usize, BagColor)>,
 }
@@ -55,7 +55,7 @@ impl FromStr for Rule {
 }
 
 /// Parse a stream (such as stdin) into a list of rules.
-fn parse_input<R: BufRead>(reader: R) -> Result<Vec<Rule>, Box<dyn Error>> {
+pub fn parse_input<R: BufRead>(reader: R) -> Result<Vec<Rule>, Box<dyn Error>> {
     let mut result = Vec::<Rule>::new();
     for line in reader.lines() {
         result.push(line?.parse()?);
@@ -78,7 +78,7 @@ fn build_inner_to_outer_map(
     result
 }
 
-fn number_of_outer_bags_that_could_have_shiny(rules: &[Rule]) -> usize {
+pub fn number_of_outer_bags_that_could_have_shiny(rules: &[Rule]) -> usize {
     let inner_to_outer_map = build_inner_to_outer_map(&rules);
     let start_point = BagColor("shiny gold".into());
     let mut to_visit = vec![&start_point];
@@ -125,7 +125,7 @@ fn number_of_bags_in_bag_helper<'a>(
     sum
 }
 
-fn number_of_bags_in_shiny(rules: &[Rule]) -> usize {
+pub fn number_of_bags_in_shiny(rules: &[Rule]) -> usize {
     let mut rules_map = HashMap::<&BagColor, &Rule>::new();
     for rule in rules {
         rules_map.insert(&rule.outer, rule);
@@ -141,17 +141,6 @@ fn number_of_bags_in_shiny(rules: &[Rule]) -> usize {
         &mut answer_map,
         &BagColor("shiny gold".into()),
     )
-}
-
-fn main() {
-    let rules = parse_input(std::io::stdin().lock()).unwrap();
-    let part = std::env::args().nth(1).expect("missing part");
-    let res = match part.as_str() {
-        "a" => number_of_outer_bags_that_could_have_shiny(&rules),
-        "b" => number_of_bags_in_shiny(&rules),
-        _ => panic!("Bad part {}", part),
-    };
-    println!("{}", res);
 }
 
 #[cfg(test)]

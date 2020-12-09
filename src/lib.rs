@@ -1,7 +1,9 @@
 use std::error::Error;
 use std::io::BufRead;
 
+pub mod bags;
 pub mod factors;
+pub mod handheld;
 pub mod passwords;
 pub mod toboggan;
 

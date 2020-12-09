@@ -2,14 +2,14 @@ use std::collections::HashSet;
 use std::io::BufRead;
 
 #[derive(Debug, Copy, Clone)]
-enum Insn {
+pub enum Insn {
     Nop(i32),
     Jmp(i32),
     Acc(i32),
 }
 
 #[derive(Eq, PartialEq, Debug)]
-enum RunState {
+pub enum RunState {
     Running,
     Done,
     Looped,
@@ -27,7 +27,7 @@ fn parse_line(line: &str) -> Insn {
     }
 }
 
-fn parse_program<R: BufRead>(reader: R) -> Vec<Insn> {
+pub fn parse_program<R: BufRead>(reader: R) -> Vec<Insn> {
     reader
         .lines()
         .map(|l| parse_line(l.unwrap().as_str()))
@@ -35,7 +35,7 @@ fn parse_program<R: BufRead>(reader: R) -> Vec<Insn> {
 }
 
 #[derive(Debug)]
-struct Handheld<'a> {
+pub struct Handheld<'a> {
     pc: usize,
     acc: i32,
     state: RunState,
@@ -75,7 +75,7 @@ impl<'a> Handheld<'a> {
     }
 }
 
-fn acc_at_loop(program: &[Insn]) -> i32 {
+pub fn acc_at_loop(program: &[Insn]) -> i32 {
     let mut hh = Handheld::new(program);
     while hh.state != RunState::Looped {
         hh.step();
@@ -83,7 +83,7 @@ fn acc_at_loop(program: &[Insn]) -> i32 {
     hh.acc
 }
 
-fn acc_after_fix(mut program: Vec<Insn>) -> i32 {
+pub fn acc_after_fix(mut program: Vec<Insn>) -> i32 {
     // We only need to consider changing instructions that actually execute in
     // the broken version.
     let candidate_pcs = {
@@ -119,17 +119,6 @@ fn acc_after_fix(mut program: Vec<Insn>) -> i32 {
         program[pc] = old_insn;
     }
     panic!("Unfixable")
-}
-
-fn main() {
-    let program = parse_program(std::io::stdin().lock());
-    let part = std::env::args().nth(1).expect("missing part");
-    let res = match part.as_str() {
-        "a" => acc_at_loop(&program),
-        "b" => acc_after_fix(program),
-        _ => panic!("Bad part {}", part),
-    };
-    println!("{}", res);
 }
 
 #[cfg(test)]
