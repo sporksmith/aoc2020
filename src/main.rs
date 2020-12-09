@@ -21,7 +21,8 @@ fn main() {
         "8b" => handheld::acc_after_fix(handheld::parse_program(Cursor::new(
             buf.as_bytes(),
         ))) as usize,
-        "9a" => encoding::part1(&buf, 25),
+        "9a" => encoding::part1(&buf, 25) as usize,
+        "9b" => encoding::part2(&buf, 25) as usize,
         _ => panic!("Bad part {}", part),
     };
     println!("{}", res);
