@@ -22,6 +22,13 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             b.iter(|| handheld::acc_after_fix(program.clone()))
         });
     }
+    {
+        let input = std::fs::read_to_string("inputs/day9").unwrap();
+        let nums: Vec<_> = encoding::parse(&input);
+        c.bench_function("9 parse", |b| b.iter(|| encoding::parse(&input)));
+        c.bench_function("9a", |b| b.iter(|| encoding::part1(&nums, 25)));
+        c.bench_function("9b", |b| b.iter(|| encoding::part2(&nums, 25)));
+    }
 }
 
 criterion_group!(benches, criterion_benchmark);
