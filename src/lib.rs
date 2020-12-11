@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::io::BufRead;
 
+pub mod adapter;
 pub mod bags;
 pub mod encoding;
 pub mod factors;
