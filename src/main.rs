@@ -24,6 +24,7 @@ fn main() {
         "9a" => encoding::part1(&encoding::parse(&buf), 25) as usize,
         "9b" => encoding::part2(&encoding::parse(&buf), 25) as usize,
         "10a" => adapter::part1(&adapter::parse(&buf)) as usize,
+        "10b" => adapter::part2(&adapter::parse(&buf)) as usize,
         _ => panic!("Bad part {}", part),
     };
     println!("{}", res);

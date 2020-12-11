@@ -14,7 +14,6 @@ pub fn parse(input: &str) -> Vec<u64> {
 pub fn part1(nums: &[u64]) -> u64 {
     let (mut ones, mut threes) = (0, 0);
     for diff in nums.windows(2).map(|x| x[1] - x[0]) {
-        println!("{}", diff);
         match diff {
             1 => ones += 1,
             3 => threes += 1,
@@ -24,9 +23,37 @@ pub fn part1(nums: &[u64]) -> u64 {
     ones * threes
 }
 
+fn part2_helper(prev: u64, nums: &[u64]) -> u64 {
+    if nums.len() == 1 {
+        return 1;
+    }
+    if nums[0] - prev > 3 {
+        return 0;
+    }
+    let ways_with_next = part2_helper(nums[0], &nums[1..nums.len()]);
+    let ways_without_next = if nums[1] - prev > 3 {
+        0
+    } else {
+        part2_helper(prev, &nums[1..nums.len()])
+    };
+    ways_with_next + ways_without_next
+}
+
+pub fn part2(nums: &[u64]) -> u64 {
+    part2_helper(nums[0], &nums[1..nums.len()])
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(&[0, 3]), 1);
+        assert_eq!(part2(&[0, 3, 6]), 1);
+        assert_eq!(part2(&[0, 1, 3, 6]), 2);
+        assert_eq!(part2(&[0, 1, 2, 3, 6]), 4);
+    }
 
     #[test]
     fn example() {
@@ -45,6 +72,7 @@ mod test {
 4",
         );
         assert_eq!(part1(&input), 35);
+        assert_eq!(part2(&input), 8);
 
         let input = parse(
             "\
@@ -81,5 +109,6 @@ mod test {
 3",
         );
         assert_eq!(part1(&input), 220);
+        assert_eq!(part2(&input), 19208);
     }
 }
