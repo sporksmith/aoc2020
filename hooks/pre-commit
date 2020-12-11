@@ -10,12 +10,9 @@ export RUSTFLAGS=-Dwarnings
 # Echo commands
 set -v
 
+cargo fmt --all -- --check
 cargo test
 ./ci.sh
-cargo clippy --workspace --all-targets --verbose --no-default-features
-cargo check --workspace --all-targets --verbose --no-default-features
-
-cargo clippy --workspace --all-targets --verbose --all-features
-cargo check --workspace --all-targets --verbose --all-features
-cargo fmt --all -- --check
+cargo clippy --workspace --all-targets --verbose
+cargo check --workspace --all-targets --verbose
 
