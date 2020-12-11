@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 // Output is *sorted*
 pub fn parse(input: &str) -> Vec<u64> {
     let mut res: Vec<_> =
@@ -23,24 +25,36 @@ pub fn part1(nums: &[u64]) -> u64 {
     ones * threes
 }
 
-fn part2_helper(prev: u64, nums: &[u64]) -> u64 {
-    if nums.len() == 1 {
+fn part2_helper(
+    memo_table: &mut HashMap<(u64, usize), u64>,
+    prev_val: u64,
+    start_idx: usize,
+    nums: &[u64],
+) -> u64 {
+    if let Some(res) = memo_table.get(&(prev_val, start_idx)) {
+        return *res;
+    }
+    let slice = &nums[start_idx..nums.len()];
+    if slice.len() == 1 {
         return 1;
     }
-    if nums[0] - prev > 3 {
+    if slice[0] - prev_val > 3 {
         return 0;
     }
-    let ways_with_next = part2_helper(nums[0], &nums[1..nums.len()]);
-    let ways_without_next = if nums[1] - prev > 3 {
+    let ways_with_next =
+        part2_helper(memo_table, slice[0], start_idx + 1, nums);
+    let ways_without_next = if slice[1] - prev_val > 3 {
         0
     } else {
-        part2_helper(prev, &nums[1..nums.len()])
+        part2_helper(memo_table, prev_val, start_idx + 1, nums)
     };
-    ways_with_next + ways_without_next
+    let res = ways_with_next + ways_without_next;
+    memo_table.insert((prev_val, start_idx), res);
+    res
 }
 
 pub fn part2(nums: &[u64]) -> u64 {
-    part2_helper(nums[0], &nums[1..nums.len()])
+    part2_helper(&mut HashMap::new(), nums[0], 1, nums)
 }
 
 #[cfg(test)]
