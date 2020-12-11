@@ -35,9 +35,26 @@ impl Grid {
         self.positions[idx] = pos
     }
 
+    pub fn adjacent_occupied(&self, col: isize, row: isize) -> usize {
+        #[rustfmt::skip]
+        let neighbor_diffs = [
+            (-1,1), (0,1), (1,1),
+            (-1,0),        (1,0),
+            (-1,-1),(0,-1),(1,-1)];
+        neighbor_diffs
+            .iter()
+            .map(|(dcol, drow)| self.get(col + dcol, row + drow))
+            .filter(|p| p == &Position::Occupied)
+            .count()
+    }
+
     // Optionally takes storage for `next` (which must match the shape of `self`), allowing us to
     // avoid hitting the allocator. Returns the next state.
-    pub fn step(&self, next: Option<Grid>) -> Grid {
+    pub fn step<F: Fn(&Grid, isize, isize) -> usize>(
+        &self,
+        next: Option<Grid>,
+        count_fn: F,
+    ) -> Grid {
         let mut next = match next {
             Some(next) => next,
             None => self.clone(),
@@ -55,17 +72,7 @@ impl Grid {
                     next.set(col, row, pos);
                     continue;
                 }
-
-                #[rustfmt::skip]
-                let neighbor_diffs = [
-                    (-1,1), (0,1), (1,1),
-                    (-1,0),        (1,0),
-                    (-1,-1),(0,-1),(1,-1)];
-                let occupied_neighbor_count = neighbor_diffs
-                    .iter()
-                    .map(|(dcol, drow)| self.get(col + dcol, row + drow))
-                    .filter(|p| p == &Position::Occupied)
-                    .count();
+                let occupied_neighbor_count = count_fn(self, col, row);
                 let next_pos = if pos == Position::Occupied
                     && occupied_neighbor_count >= 4
                 {
@@ -123,9 +130,9 @@ pub fn parse(input: &str) -> Grid {
 
 pub fn part1(zero: &Grid) -> usize {
     let mut prev = zero.clone();
-    let mut curr = zero.step(None);
+    let mut curr = zero.step(None, Grid::adjacent_occupied);
     while curr != prev {
-        let next = curr.step(Some(prev));
+        let next = curr.step(Some(prev), Grid::adjacent_occupied);
         prev = curr;
         curr = next;
     }
@@ -177,8 +184,8 @@ L.L.L..L..
 #.LLLLLL.L
 #.#LLLL.##",
         );
-        assert_eq!(zero.step(None), one);
-        assert_eq!(one.step(None), two);
+        assert_eq!(zero.step(None, Grid::adjacent_occupied), one);
+        assert_eq!(one.step(None, Grid::adjacent_occupied), two);
         assert_eq!(part1(&zero), 37);
     }
 }
