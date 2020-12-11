@@ -24,24 +24,26 @@ impl Grid {
 
     // Note - returns "Floor" for out of bounds
     pub fn get(&self, col: isize, row: isize) -> Position {
-        match self.idx(row, col) {
+        match self.idx(col, row) {
             Some(i) => self.positions[i],
             None => Position::Floor,
         }
     }
 
     pub fn set(&mut self, col: isize, row: isize, pos: Position) {
-        let idx = self.idx(row, col).unwrap();
+        let idx = self.idx(col, row).unwrap();
         self.positions[idx] = pos
     }
 
+    // Optionally takes storage for `next` (which must match the shape of `self`), allowing us to
+    // avoid hitting the allocator. Returns the next state.
     pub fn step(&self, next: Option<Grid>) -> Grid {
-        //debug_assert_eq!(self.cols, next.cols);
-        //debug_assert_eq!(self.rows, next.rows);
         let mut next = match next {
             Some(next) => next,
             None => self.clone(),
         };
+        debug_assert_eq!(self.cols, next.cols);
+        debug_assert_eq!(self.rows, next.rows);
 
         for row in 0..self.rows {
             for col in 0..self.cols {
@@ -50,7 +52,7 @@ impl Grid {
 
                 let pos = self.get(col, row);
                 if pos == Position::Floor {
-                    next.set(col, row, Position::Floor);
+                    next.set(col, row, pos);
                     continue;
                 }
 
@@ -64,13 +66,17 @@ impl Grid {
                     .map(|(dcol, drow)| self.get(col + dcol, row + drow))
                     .filter(|p| p == &Position::Occupied)
                     .count();
-                if occupied_neighbor_count >= 4 {
-                    next.set(col, row, Position::Empty);
-                } else if occupied_neighbor_count == 0 {
-                    next.set(col, row, Position::Occupied);
+                let next_pos = if pos == Position::Occupied
+                    && occupied_neighbor_count >= 4
+                {
+                    Position::Empty
+                } else if pos == Position::Empty && occupied_neighbor_count == 0
+                {
+                    Position::Occupied
                 } else {
-                    next.set(col, row, self.get(col, row));
-                }
+                    pos
+                };
+                next.set(col, row, next_pos);
             }
         }
         next
@@ -113,6 +119,17 @@ pub fn parse(input: &str) -> Grid {
         cols,
         positions,
     }
+}
+
+pub fn part1(zero: &Grid) -> usize {
+    let mut prev = zero.clone();
+    let mut curr = zero.step(None);
+    while curr != prev {
+        let next = curr.step(Some(prev));
+        prev = curr;
+        curr = next;
+    }
+    curr.occupied()
 }
 
 #[cfg(test)]
@@ -162,5 +179,6 @@ L.L.L..L..
         );
         assert_eq!(zero.step(None), one);
         assert_eq!(one.step(None), two);
+        assert_eq!(part1(&zero), 37);
     }
 }
