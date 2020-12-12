@@ -118,6 +118,20 @@ impl BoatState {
             }
         }
     }
+
+    pub fn go_part2(&mut self, d: &Direction) {
+        match d {
+            Direction::Turn(t, a) => {
+                self.bearing = self.bearing.rotate(*t, *a as i32)
+            }
+            Direction::Bearing(b, a) => {
+                self.bearing = self.bearing + b.to_vector() * (*a as i32)
+            }
+            Direction::Forward(a) => {
+                self.pos = self.pos + self.bearing * (*a as i32)
+            }
+        }
+    }
 }
 
 pub fn part1(directions: &[Direction]) -> u64 {
@@ -127,6 +141,17 @@ pub fn part1(directions: &[Direction]) -> u64 {
     };
     for d in directions {
         boat.go_part1(d);
+    }
+    (boat.pos.x.abs() + boat.pos.y.abs()) as u64
+}
+
+pub fn part2(directions: &[Direction]) -> u64 {
+    let mut boat = BoatState {
+        pos: Vector { x: 0, y: 0 },
+        bearing: Vector { x: 10, y: 1 },
+    };
+    for d in directions {
+        boat.go_part2(d);
     }
     (boat.pos.x.abs() + boat.pos.y.abs()) as u64
 }
@@ -189,7 +214,8 @@ F11",
                 bearing: Bearing::S.to_vector(),
             }
         );
-
         assert_eq!(part1(&input), 25);
+
+        assert_eq!(part2(&input), 286);
     }
 }
