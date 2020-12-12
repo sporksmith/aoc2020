@@ -72,8 +72,8 @@ impl Vector {
         let x = self.x as f64;
         let y = self.y as f64;
         Vector {
-            x: (cos * x - sin * y) as i32,
-            y: (sin * x + cos * y) as i32,
+            x: (cos * x - sin * y).round() as i32,
+            y: (sin * x + cos * y).round() as i32,
         }
     }
 }
