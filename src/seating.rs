@@ -22,11 +22,10 @@ impl Grid {
         Some((row as usize) * self.cols + col as usize)
     }
 
-    // Note - returns "Floor" for out of bounds
-    pub fn get(&self, col: isize, row: isize) -> Position {
+    pub fn get(&self, col: isize, row: isize) -> Option<Position> {
         match self.idx(col, row) {
-            Some(i) => self.positions[i],
-            None => Position::Floor,
+            Some(i) => Some(self.positions[i]),
+            None => None,
         }
     }
 
@@ -35,41 +34,36 @@ impl Grid {
         self.positions[idx] = pos
     }
 
-    pub fn adjacent_occupied(&self, col: isize, row: isize) -> usize {
-        #[rustfmt::skip]
-        let neighbor_diffs = [
+    #[rustfmt::skip]
+    const DIRECTIONS: &'static [(isize,isize)] = &[
             (-1,1), (0,1), (1,1),
             (-1,0),        (1,0),
             (-1,-1),(0,-1),(1,-1)];
-        neighbor_diffs
+
+    pub fn adjacent_occupied(&self, col: isize, row: isize) -> usize {
+        Grid::DIRECTIONS
             .iter()
             .map(|(dcol, drow)| self.get(col + dcol, row + drow))
-            .filter(|p| p == &Position::Occupied)
+            .filter(|p| p == &Some(Position::Occupied))
             .count()
     }
 
     pub fn visible_occupied(&self, col: isize, row: isize) -> usize {
-        #[rustfmt::skip]
-        let neighbor_directions = [
-            (-1,1), (0,1), (1,1),
-            (-1,0),        (1,0),
-            (-1,-1),(0,-1),(1,-1)];
         let mut count = 0;
-        for (dcol, drow) in neighbor_directions.iter() {
+        for (dcol, drow) in Grid::DIRECTIONS.iter() {
             let mut distance = 1;
             loop {
                 let col = col + *dcol as isize * distance;
                 let row = row + *drow as isize * distance;
-                if !(0..self.rows as isize).contains(&row)
-                    || !(0..self.cols as isize).contains(&col)
-                {
-                    // Off the chart
-                    break;
-                }
                 match self.get(col, row) {
-                    Position::Floor => (),
-                    Position::Empty => break,
-                    Position::Occupied => {
+                    // Off the chart; done with this direction.
+                    None => break,
+                    // Need to keep looking further.
+                    Some(Position::Floor) => (),
+                    // Empty seat; done with this direction.
+                    Some(Position::Empty) => break,
+                    // Occupied seat; increment and done with this direction.
+                    Some(Position::Occupied) => {
                         count += 1;
                         break;
                     }
@@ -100,7 +94,7 @@ impl Grid {
                 let row = row as isize;
                 let col = col as isize;
 
-                let pos = self.get(col, row);
+                let pos = self.get(col, row).unwrap();
                 if pos == Position::Floor {
                     next.set(col, row, pos);
                     continue;
@@ -126,7 +120,9 @@ impl Grid {
         let mut count = 0;
         for col in 0..self.cols {
             for row in 0..self.rows {
-                if self.get(col as isize, row as isize) == Position::Occupied {
+                if self.get(col as isize, row as isize).unwrap()
+                    == Position::Occupied
+                {
                     count += 1;
                 }
             }
