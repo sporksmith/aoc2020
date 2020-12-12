@@ -48,12 +48,45 @@ impl Grid {
             .count()
     }
 
+    pub fn visible_occupied(&self, col: isize, row: isize) -> usize {
+        #[rustfmt::skip]
+        let neighbor_directions = [
+            (-1,1), (0,1), (1,1),
+            (-1,0),        (1,0),
+            (-1,-1),(0,-1),(1,-1)];
+        let mut count = 0;
+        for (dcol, drow) in neighbor_directions.iter() {
+            let mut distance = 1;
+            loop {
+                let col = col + *dcol as isize * distance;
+                let row = row + *drow as isize * distance;
+                if !(0..self.rows as isize).contains(&row)
+                    || !(0..self.cols as isize).contains(&col)
+                {
+                    // Off the chart
+                    break;
+                }
+                match self.get(col, row) {
+                    Position::Floor => (),
+                    Position::Empty => break,
+                    Position::Occupied => {
+                        count += 1;
+                        break;
+                    }
+                };
+                distance += 1;
+            }
+        }
+        count
+    }
+
     // Optionally takes storage for `next` (which must match the shape of `self`), allowing us to
     // avoid hitting the allocator. Returns the next state.
     pub fn step<F: Fn(&Grid, isize, isize) -> usize>(
         &self,
         next: Option<Grid>,
-        count_fn: F,
+        count_neighbor_fn: F,
+        neighbor_limit: usize,
     ) -> Grid {
         let mut next = match next {
             Some(next) => next,
@@ -72,9 +105,9 @@ impl Grid {
                     next.set(col, row, pos);
                     continue;
                 }
-                let occupied_neighbor_count = count_fn(self, col, row);
+                let occupied_neighbor_count = count_neighbor_fn(self, col, row);
                 let next_pos = if pos == Position::Occupied
-                    && occupied_neighbor_count >= 4
+                    && occupied_neighbor_count >= neighbor_limit
                 {
                     Position::Empty
                 } else if pos == Position::Empty && occupied_neighbor_count == 0
@@ -130,9 +163,20 @@ pub fn parse(input: &str) -> Grid {
 
 pub fn part1(zero: &Grid) -> usize {
     let mut prev = zero.clone();
-    let mut curr = zero.step(None, Grid::adjacent_occupied);
+    let mut curr = zero.step(None, Grid::adjacent_occupied, 4);
     while curr != prev {
-        let next = curr.step(Some(prev), Grid::adjacent_occupied);
+        let next = curr.step(Some(prev), Grid::adjacent_occupied, 4);
+        prev = curr;
+        curr = next;
+    }
+    curr.occupied()
+}
+
+pub fn part2(zero: &Grid) -> usize {
+    let mut prev = zero.clone();
+    let mut curr = zero.step(None, Grid::visible_occupied, 5);
+    while curr != prev {
+        let next = curr.step(Some(prev), Grid::visible_occupied, 5);
         prev = curr;
         curr = next;
     }
@@ -184,8 +228,26 @@ L.L.L..L..
 #.LLLLLL.L
 #.#LLLL.##",
         );
-        assert_eq!(zero.step(None, Grid::adjacent_occupied), one);
-        assert_eq!(one.step(None, Grid::adjacent_occupied), two);
+        assert_eq!(zero.step(None, Grid::adjacent_occupied, 4), one);
+        assert_eq!(one.step(None, Grid::adjacent_occupied, 4), two);
         assert_eq!(part1(&zero), 37);
+
+        let two = parse(
+            "\
+#.LL.LL.L#
+#LLLLLL.LL
+L.L.L..L..
+LLLL.LL.LL
+L.LL.LL.LL
+L.LLLLL.LL
+..L.L.....
+LLLLLLLLL#
+#.LLLLLL.L
+#.LLLLL.L#
+",
+        );
+        assert_eq!(one.visible_occupied(0, 0), 3);
+        assert_eq!(one.step(None, Grid::visible_occupied, 5), two);
+        assert_eq!(part2(&zero), 26);
     }
 }
