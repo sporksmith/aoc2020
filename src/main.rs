@@ -25,6 +25,8 @@ fn main() {
         "9b" => encoding::part2(&encoding::parse(&buf), 25) as usize,
         "10a" => adapter::part1(&adapter::parse(&buf)) as usize,
         "10b" => adapter::part2(&adapter::parse(&buf)) as usize,
+        "11a" => seating::part1(&seating::parse(&buf)) as usize,
+        "11b" => seating::part2(&seating::parse(&buf)) as usize,
         _ => panic!("Bad part {}", part),
     };
     println!("{}", res);

@@ -7,6 +7,7 @@ pub mod encoding;
 pub mod factors;
 pub mod handheld;
 pub mod passwords;
+pub mod seating;
 pub mod toboggan;
 
 pub struct BufReadSplitOnBlank<R: BufRead> {
