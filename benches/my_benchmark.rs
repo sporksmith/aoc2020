@@ -37,6 +37,14 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         c.bench_function("10a", |b| b.iter(|| adapter::part1(&nums)));
         c.bench_function("10b", |b| b.iter(|| adapter::part2(&nums)));
     }
+    {
+        let input = std::fs::read_to_string("inputs/day11").unwrap();
+        c.bench_function("11 parse", |b| b.iter(|| seating::parse(&input)));
+
+        let grid = seating::parse(&input);
+        c.bench_function("11a", |b| b.iter(|| seating::part1(&grid)));
+        c.bench_function("11b", |b| b.iter(|| seating::part2(&grid)));
+    }
 }
 
 criterion_group!(benches, criterion_benchmark);
