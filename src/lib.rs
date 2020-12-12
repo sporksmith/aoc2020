@@ -3,6 +3,7 @@ use std::io::BufRead;
 
 pub mod adapter;
 pub mod bags;
+pub mod d12_rain;
 pub mod encoding;
 pub mod factors;
 pub mod handheld;
