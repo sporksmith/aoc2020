@@ -53,6 +53,11 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         c.bench_function("12a", |b| b.iter(|| d12_rain::part1(&input)));
         c.bench_function("12b", |b| b.iter(|| d12_rain::part2(&input)));
     }
+    {
+        let input = std::fs::read_to_string("inputs/day13").unwrap();
+        c.bench_function("13a", |b| b.iter(|| d13_bus::part1(&input)));
+        c.bench_function("13b", |b| b.iter(|| d13_bus::part2(&input)));
+    }
 }
 
 criterion_group!(benches, criterion_benchmark);

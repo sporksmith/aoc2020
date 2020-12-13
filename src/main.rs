@@ -29,6 +29,8 @@ fn main() {
         "11b" => seating::part2(&seating::parse(&buf)) as usize,
         "12a" => d12_rain::part1(&d12_rain::parse(&buf)) as usize,
         "12b" => d12_rain::part2(&d12_rain::parse(&buf)) as usize,
+        "13a" => d13_bus::part1(&buf) as usize,
+        "13b" => d13_bus::part2(&buf) as usize,
         _ => panic!("Bad part {}", part),
     };
     println!("{}", res);
