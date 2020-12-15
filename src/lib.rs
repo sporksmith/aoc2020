@@ -5,6 +5,7 @@ pub mod adapter;
 pub mod bags;
 pub mod d12_rain;
 pub mod d13_bus;
+pub mod d14_docking;
 pub mod encoding;
 pub mod factors;
 pub mod handheld;
