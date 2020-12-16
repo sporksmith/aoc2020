@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
 pub struct Game {
-    prev_turn: u64,
-    prev_num: u64,
-    last_spoken: HashMap<u64, u64>,
+    prev_turn: u32,
+    prev_num: u32,
+    last_spoken: HashMap<u32, u32>,
 }
 
 impl Game {
@@ -14,13 +14,13 @@ impl Game {
             last_spoken: HashMap::new(),
         };
         for n in input.lines().next().unwrap().split(',') {
-            let n: u64 = n.parse().unwrap();
+            let n = n.parse().unwrap();
             game.process_next(n);
         }
         game
     }
 
-    pub fn process_next(&mut self, n: u64) {
+    pub fn process_next(&mut self, n: u32) {
         if self.prev_turn > 0 {
             self.last_spoken.insert(self.prev_num, self.prev_turn);
         }
@@ -29,7 +29,7 @@ impl Game {
         //println!("Turn {} spoke {}, hm: {:?}", self.prev_turn, n, self.last_spoken);
     }
 
-    pub fn get_next(&self) -> u64 {
+    pub fn get_next(&self) -> u32 {
         if let Some(prev_turn_spoken) = self.last_spoken.get(&self.prev_num) {
             self.prev_turn - prev_turn_spoken
         } else {
@@ -37,20 +37,20 @@ impl Game {
         }
     }
 
-    pub fn run_to(&mut self, turn: u64) {
+    pub fn run_to(&mut self, turn: u32) {
         while self.prev_turn < turn {
             self.process_next(self.get_next());
         }
     }
 }
 
-pub fn part1(input: &str) -> u64 {
+pub fn part1(input: &str) -> u32 {
     let mut game = Game::new(input);
     game.run_to(2020);
     game.prev_num
 }
 
-pub fn part2(input: &str) -> u64 {
+pub fn part2(input: &str) -> u32 {
     let mut game = Game::new(input);
     game.run_to(30000000);
     game.prev_num
