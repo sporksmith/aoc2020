@@ -33,6 +33,8 @@ fn main() {
         "13b" => d13_bus::part2(&buf) as usize,
         "14a" => d14_docking::part1(&buf) as usize,
         "14b" => d14_docking::part2(&buf) as usize,
+        "15a" => d15_recitation::part1(&buf) as usize,
+        "15b" => d15_recitation::part2(&buf) as usize,
         _ => panic!("Bad part {}", part),
     };
     println!("{}", res);
