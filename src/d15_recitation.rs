@@ -59,6 +59,6 @@ pub fn part2(input: &str) -> u32 {
 #[test]
 fn test_example() {
     assert_eq!(part1("0,3,6\n"), 436);
-    // Passes but sloooow
+    // Passes but slow
     //assert_eq!(part2("0,3,6\n"), 175594);
 }
