@@ -7,12 +7,17 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new() -> Game {
-        Game {
+    pub fn new(input: &str) -> Game {
+        let mut game = Game {
             prev_turn: 0,
             prev_num: 0,
             last_spoken: HashMap::new(),
+        };
+        for n in input.lines().next().unwrap().split(',') {
+            let n: u64 = n.parse().unwrap();
+            game.process_next(n);
         }
+        game
     }
 
     pub fn process_next(&mut self, n: u64) {
@@ -31,25 +36,23 @@ impl Game {
             0
         }
     }
-}
 
-impl Default for Game {
-    fn default() -> Self {
-        Self::new()
+    pub fn run_to(&mut self, turn: u64) {
+        while self.prev_turn < turn {
+            self.process_next(self.get_next());
+        }
     }
 }
 
 pub fn part1(input: &str) -> u64 {
-    let mut game = Game::new();
-    for n in input.lines().next().unwrap().split(',') {
-        let n: u64 = n.parse().unwrap();
-        game.process_next(n);
-    }
+    let mut game = Game::new(input);
+    game.run_to(2020);
+    game.prev_num
+}
 
-    while game.prev_turn != 2020 {
-        game.process_next(game.get_next());
-    }
-
+pub fn part2(input: &str) -> u64 {
+    let mut game = Game::new(input);
+    game.run_to(30000000);
     game.prev_num
 }
 
@@ -57,4 +60,6 @@ pub fn part1(input: &str) -> u64 {
 #[test]
 fn test_example() {
     assert_eq!(part1("0,3,6\n"), 436);
+    // Passes but sloooow
+    //assert_eq!(part2("0,3,6\n"), 175594);
 }

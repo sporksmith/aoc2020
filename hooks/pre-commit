@@ -12,7 +12,7 @@ set -v
 
 cargo fmt --all -- --check
 cargo test
-cargo build
+cargo build --release
 ./ci.sh
 cargo clippy --workspace --all-targets --verbose
 cargo check --workspace --all-targets --verbose
