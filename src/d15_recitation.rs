@@ -1,13 +1,13 @@
 pub struct Game {
     prev_turn: u32,
     prev_num: u32,
-    last_spoken: Vec<Option<u32>>,
+    last_spoken: Vec<u32>,
 }
 
 impl Game {
     pub fn new(input: &str, max: usize) -> Game {
         let mut v = Vec::new();
-        v.resize(max, None);
+        v.resize(max, max as u32);
         let mut game = Game {
             prev_turn: 0,
             prev_num: 0,
@@ -22,7 +22,7 @@ impl Game {
 
     pub fn process_next(&mut self, n: u32) {
         if self.prev_turn > 0 {
-            self.last_spoken[self.prev_num as usize] = Some(self.prev_turn);
+            self.last_spoken[self.prev_num as usize] = self.prev_turn;
         }
         self.prev_num = n;
         self.prev_turn += 1;
@@ -30,12 +30,10 @@ impl Game {
     }
 
     pub fn get_next(&self) -> u32 {
-        if let Some(prev_turn_spoken) = self.last_spoken[self.prev_num as usize]
-        {
-            self.prev_turn - prev_turn_spoken
-        } else {
-            0
-        }
+        // Stolen from https://github.com/jeremylt/advent2020/blob/main/src/day15.rs.
+        // Lets us use a Vec<u32> instead of a Vec<Option<u32>>, saving some time and memory.
+        self.prev_turn
+            .saturating_sub(self.last_spoken[self.prev_num as usize])
     }
 
     pub fn run_to(&mut self, turn: u32) {
