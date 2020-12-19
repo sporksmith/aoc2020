@@ -1,11 +1,11 @@
 use lazy_static::lazy_static;
 use std::collections::HashSet;
 
-type Pos = (i32, i32, i32);
+type Pos = (i32, i32, i32, i32);
 type State = HashSet<Pos>;
 
 lazy_static! {
-    static ref DELTAS: Vec<(i32, i32, i32)> = {
+    static ref DELTAS3: Vec<Pos> = {
         let mut d = Vec::new();
         for dx in -1..=1 {
             for dy in -1..=1 {
@@ -13,7 +13,23 @@ lazy_static! {
                     if dx == 0 && dy == 0 && dz == 0 {
                         continue;
                     }
-                    d.push((dx, dy, dz));
+                    d.push((dx, dy, dz, 0));
+                }
+            }
+        }
+        d
+    };
+    static ref DELTAS4: Vec<Pos> = {
+        let mut d = Vec::new();
+        for dx in -1..=1 {
+            for dy in -1..=1 {
+                for dz in -1..=1 {
+                    for dw in -1..=1 {
+                        if dx == 0 && dy == 0 && dz == 0 && dw == 0 {
+                            continue;
+                        }
+                        d.push((dx, dy, dz, dw));
+                    }
                 }
             }
         }
@@ -56,33 +72,33 @@ fn state2string(state: &State) -> String {
 }
 */
 
-fn candidates(state: &State) -> HashSet<Pos> {
+fn candidates(state: &State, deltas: &[Pos]) -> HashSet<Pos> {
     let mut res = HashSet::<Pos>::new();
     for pos in state {
         res.insert(*pos);
-        for (dx, dy, dz) in DELTAS.iter() {
-            res.insert((pos.0 + dx, pos.1 + dy, pos.2 + dz));
+        for (dx, dy, dz, dw) in deltas.iter() {
+            res.insert((pos.0 + dx, pos.1 + dy, pos.2 + dz, pos.3 + dw));
         }
     }
     res
 }
 
-fn next(state: &State) -> State {
+fn next(state: &State, deltas: &[Pos]) -> State {
     let mut next_state = State::new();
-    for (x, y, z) in candidates(state) {
-        let neighbor_count: u8 = DELTAS
+    for (x, y, z, w) in candidates(state, deltas) {
+        let neighbor_count: u8 = deltas
             .iter()
-            .map(|(dx, dy, dz)| {
-                if state.contains(&(x + dx, y + dy, z + dz)) {
+            .map(|(dx, dy, dz, dw)| {
+                if state.contains(&(x + dx, y + dy, z + dz, w + dw)) {
                     1
                 } else {
                     0
                 }
             })
             .sum();
-        let active = state.contains(&(x, y, z));
+        let active = state.contains(&(x, y, z, w));
         if neighbor_count == 3 || active && neighbor_count == 2 {
-            let pos = (x, y, z);
+            let pos = (x, y, z, w);
             // println!("  Inserting {:?}", pos);
             next_state.insert(pos);
         }
@@ -95,7 +111,7 @@ fn parse(input: &str) -> State {
     for (y, line) in input.lines().enumerate() {
         for (x, c) in line.chars().enumerate() {
             if c == '#' {
-                res.insert((x as i32, y as i32, 0));
+                res.insert((x as i32, y as i32, 0, 0));
             }
         }
     }
@@ -107,7 +123,18 @@ pub fn part1(input: &str) -> usize {
     //println!("Initial:\n{}", state2string(&state));
     for _i in 0..6 {
         //println!("Round {}", i);
-        state = next(&state);
+        state = next(&state, &DELTAS3);
+        //println!("{}", state2string(&state));
+    }
+    state.len()
+}
+
+pub fn part2(input: &str) -> usize {
+    let mut state = parse(input);
+    //println!("Initial:\n{}", state2string(&state));
+    for _i in 0..6 {
+        //println!("Round {}", i);
+        state = next(&state, &DELTAS4);
         //println!("{}", state2string(&state));
     }
     state.len()
@@ -121,4 +148,5 @@ fn test_part1() {
 ..#
 ###";
     assert_eq!(part1(input), 112);
+    assert_eq!(part2(input), 848);
 }
