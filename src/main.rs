@@ -37,6 +37,7 @@ fn main() {
         "15b" => d15_recitation::part2(&buf) as usize,
         "16a" => d16_ticket::part1(&buf) as usize,
         "16b" => d16_ticket::part2(&buf) as usize,
+        "17a" => d17_conway::part1(&buf) as usize,
         _ => panic!("Bad part {}", part),
     };
     println!("{}", res);
