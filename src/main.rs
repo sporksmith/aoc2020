@@ -35,6 +35,7 @@ fn main() {
         "14b" => d14_docking::part2(&buf) as usize,
         "15a" => d15_recitation::part1(&buf) as usize,
         "15b" => d15_recitation::part2(&buf) as usize,
+        "16a" => d16_ticket::part1(&buf) as usize,
         _ => panic!("Bad part {}", part),
     };
     println!("{}", res);
