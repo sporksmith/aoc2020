@@ -43,15 +43,7 @@ pub fn part1(input: &str) -> u64 {
     let mut sections = input.split("\n\n");
     let rules: Vec<Rule> =
         sections.next().unwrap().lines().map(Rule::from).collect();
-    let _mine: Vec<u64> = sections
-        .next()
-        .unwrap()
-        .lines()
-        .nth(1)
-        .unwrap()
-        .split(',')
-        .map(|x| x.parse().unwrap())
-        .collect();
+    sections.next(); // Skip my ticket
     let others: Vec<Vec<u64>> = sections
         .next()
         .unwrap()
@@ -59,19 +51,6 @@ pub fn part1(input: &str) -> u64 {
         .skip(1)
         .map(|line| line.split(',').map(|x| x.parse().unwrap()).collect())
         .collect();
-
-    /*
-    others.iter()
-        .filter(| ticket |
-                ticket.iter().all(
-                    | field |
-                    rules.iter().any(| rule |
-                                     rule.ranges.iter().any(
-                                         | range | range.contains(field)))))
-        .inspect(| fields | println!("invalid: {:?}", fields))
-        .map(| fields | fields.iter().sum::<u64>())
-        .sum()
-    */
     others
         .iter()
         .flatten()
