@@ -68,6 +68,11 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         c.bench_function("15a", |b| b.iter(|| d15_recitation::part1(&input)));
         //c.bench_function("15b", |b| b.iter(|| d15_recitation::part2(&input)));
     }
+    {
+        let input = std::fs::read_to_string("inputs/day16").unwrap();
+        c.bench_function("16a", |b| b.iter(|| d16_ticket::part1(&input)));
+        c.bench_function("16b", |b| b.iter(|| d16_ticket::part2(&input)));
+    }
 }
 
 criterion_group!(benches, criterion_benchmark);
