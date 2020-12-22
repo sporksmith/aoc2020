@@ -75,12 +75,23 @@ mod v1 {
         }
     }
 
-    fn p2_priority(t: &Token) -> u8 {
+    fn conventional_priority(t: &Token) -> u8 {
         use Token::*;
         match t {
             LParen => 0,
             Plus => 1,
             Times => 2,
+            RParen => 3,
+            _ => panic!("Unexpected token {:?}", t),
+        }
+    }
+
+    fn p2_priority(t: &Token) -> u8 {
+        use Token::*;
+        match t {
+            LParen => 0,
+            Times => 1,
+            Plus => 2,
             RParen => 3,
             _ => panic!("Unexpected token {:?}", t),
         }
@@ -125,15 +136,32 @@ mod v1 {
     #[cfg(test)]
     #[test]
     fn test_torpn() {
-        assert_eq!(to_rpn(p1_priority, &tokenize("1 + 2")), tokenize("1 2 +"));
+        assert_eq!(
+            to_rpn(conventional_priority, &tokenize("1 + 2 * 3")),
+            tokenize("1 2 3 * +")
+        );
         assert_eq!(
             to_rpn(p1_priority, &tokenize("1 + 2 * 3")),
             tokenize("1 2 + 3 *")
         );
         assert_eq!(
             to_rpn(p2_priority, &tokenize("1 + 2 * 3")),
-            tokenize("1 2 3 * +")
+            tokenize("1 2 + 3 *")
         );
+
+        assert_eq!(
+            to_rpn(conventional_priority, &tokenize("1 * 2 + 3")),
+            tokenize("1 2 * 3 +")
+        );
+        assert_eq!(
+            to_rpn(p1_priority, &tokenize("1 * 2 + 3")),
+            tokenize("1 2 * 3 +")
+        );
+        assert_eq!(
+            to_rpn(p2_priority, &tokenize("1 * 2 + 3")),
+            tokenize("1 2 3 + *")
+        );
+
         assert_eq!(
             to_rpn(p1_priority, &tokenize("(1 + 2)")),
             tokenize("1 2 +")
@@ -200,6 +228,22 @@ mod v1 {
 
     pub fn p2_eval(s: &str) -> u64 {
         eval_rpn(&to_rpn(p2_priority, &tokenize(s)))
+    }
+    #[cfg(test)]
+    #[test]
+    fn test_p2_eval() {
+        assert_eq!(p2_eval("1 + 2 * 3 + 4 * 5 + 6"), 231);
+        assert_eq!(p2_eval("1 + (2 * 3) + (4 * (5 + 6))"), 51);
+        assert_eq!(p2_eval("2 * 3 + (4 * 5)"), 46);
+        assert_eq!(p2_eval("5 + (8 * 3 + 9 + 3 * 4 * 3)"), 1445);
+        assert_eq!(
+            p2_eval("5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))"),
+            669060
+        );
+        assert_eq!(
+            p2_eval("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2"),
+            23340
+        );
     }
 }
 
@@ -304,6 +348,18 @@ pub fn part1(input: &str) -> u64 {
 #[cfg(test)]
 #[test]
 fn test_part1() {
+    let input = "\
+1 + 2
+3 * 4";
+    assert_eq!(part1(input), 3 + 12);
+}
+
+pub fn part2(input: &str) -> u64 {
+    input.lines().map(v1::p2_eval).sum()
+}
+#[cfg(test)]
+#[test]
+fn test_part2() {
     let input = "\
 1 + 2
 3 * 4";

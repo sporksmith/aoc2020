@@ -40,6 +40,7 @@ fn main() {
         "17a" => d17_conway::part1(&buf) as usize,
         "17b" => d17_conway::part2(&buf) as usize,
         "18a" => d18_operation::part1(&buf) as usize,
+        "18b" => d18_operation::part2(&buf) as usize,
         _ => panic!("Bad part {}", part),
     };
     println!("{}", res);
