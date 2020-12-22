@@ -80,6 +80,9 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     }
     {
         let input = std::fs::read_to_string("inputs/day18").unwrap();
+        c.bench_function("18a_v0", |b| {
+            b.iter(|| d18_operation::part1_v0(&input))
+        });
         c.bench_function("18a", |b| b.iter(|| d18_operation::part1(&input)));
         c.bench_function("18b", |b| b.iter(|| d18_operation::part2(&input)));
     }

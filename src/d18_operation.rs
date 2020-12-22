@@ -342,6 +342,17 @@ mod v0 {
     }
 }
 
+pub fn part1_v0(input: &str) -> u64 {
+    input
+        .lines()
+        .map(|l| {
+            let (val, s) = v0::take_expr(l);
+            assert_eq!(s, "");
+            val
+        })
+        .sum()
+}
+
 pub fn part1(input: &str) -> u64 {
     input.lines().map(v1::p1_eval).sum()
 }
