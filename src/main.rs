@@ -42,6 +42,7 @@ fn main() {
         "18a" => d18_operation::part1(&buf) as usize,
         "18b" => d18_operation::part2(&buf) as usize,
         "19a" => d19_messages::part1(&buf) as usize,
+        "19b" => d19_messages::part2(&buf) as usize,
         _ => panic!("Bad part {}", part),
     };
     println!("{}", res);

@@ -86,6 +86,14 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         c.bench_function("18a", |b| b.iter(|| d18_operation::part1(&input)));
         c.bench_function("18b", |b| b.iter(|| d18_operation::part2(&input)));
     }
+    {
+        let input = std::fs::read_to_string("inputs/day19").unwrap();
+        c.bench_function("19a_regex", |b| {
+            b.iter(|| d19_messages::part1_regex(&input))
+        });
+        c.bench_function("19a", |b| b.iter(|| d19_messages::part1(&input)));
+        c.bench_function("19b", |b| b.iter(|| d19_messages::part2(&input)));
+    }
 }
 
 criterion_group!(benches, criterion_benchmark);
