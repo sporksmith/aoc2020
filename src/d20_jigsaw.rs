@@ -1,16 +1,19 @@
+use ndarray::{s, Array2};
 use std::collections::{HashMap, HashSet};
 
 type Orientation = (/* flipped: */ bool, /* rotations: */ u8);
 type TileId = usize;
 type Pos = (i16, i16);
-type Puzzle = HashMap<Pos, (TileId, Orientation)>;
+type Puzzle = HashMap<Pos, (TileId, Tile)>;
 
 #[derive(Debug, Eq, PartialEq)]
-struct TileSide(u16);
+struct TileSide(Vec<i8>);
 
 impl TileSide {
     fn reversed(&self) -> TileSide {
-        TileSide(self.0.reverse_bits() >> 6)
+        let mut v = self.0.clone();
+        v.reverse();
+        TileSide(v)
     }
 }
 
@@ -32,61 +35,82 @@ enum Side {
     Right,
 }
 
+#[derive(Clone)]
 struct Tile {
-    bits: Vec<bool>,
+    bits: Array2<i8>,
 }
 
 impl Tile {
     fn new(input: &str) -> Tile {
-        let mut bits = Vec::<bool>::new();
-        for line in input.lines() {
-            for c in line.chars() {
-                assert!(c == '#' || c == '.');
-                bits.push(c == '#')
+        let mut bits = Array2::<i8>::zeros((10, 10));
+        for (linei, line) in input.lines().enumerate() {
+            for (ci, c) in line.chars().enumerate() {
+                if c == '#' {
+                    bits[(linei, ci)] = 1;
+                } else {
+                    assert_eq!(c, '.')
+                }
             }
         }
         Tile { bits }
     }
 
-    fn getbits(&self, indices: &[usize]) -> u16 {
-        let mut res = 0;
-        for i in indices {
-            res *= 2;
-            if self.bits[*i] {
-                res += 1;
+    fn transformed(&self, ori: &Orientation) -> Tile {
+        assert_eq!(self.bits.dim().0, self.bits.dim().1);
+        let dim = self.bits.dim().0;
+
+        let mut bits = if ori.0 {
+            let mut flipped = Array2::<i8>::zeros(self.bits.dim());
+            for x in 0..dim {
+                for y in 0..dim {
+                    flipped[(x, y)] = self.bits[((dim - x - 1), y)]
+                }
             }
-        }
-        res
-    }
-
-    fn top(&self, orientation: &Orientation) -> TileSide {
-        let bits = match orientation {
-            (false, 0) => &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            (false, 1) => &[90, 80, 70, 60, 50, 40, 30, 20, 10, 0],
-            (false, 2) => &[99, 98, 97, 96, 95, 94, 93, 92, 91, 90],
-            (false, 3) => &[9, 19, 29, 39, 49, 59, 69, 79, 89, 99],
-            (true, 0) => &[9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
-            (true, 1) => &[99, 89, 79, 69, 59, 49, 39, 29, 19, 9],
-            (true, 2) => &[90, 91, 92, 93, 94, 95, 96, 97, 98, 99],
-            (true, 3) => &[0, 10, 20, 30, 40, 50, 60, 70, 80, 90],
-            _ => panic!("whoops"),
+            flipped
+        } else {
+            self.bits.clone()
         };
-        TileSide(self.getbits(bits))
+
+        // rotate `ori.1` times
+        for _i in 0..ori.1 {
+            let mut rotated = Array2::<i8>::zeros(bits.dim());
+            for x in 0..dim {
+                for y in 0..dim {
+                    rotated[(x, y)] = bits[(dim - 1 - y, x)]
+                }
+            }
+            bits = rotated
+        }
+
+        Tile { bits }
     }
 
-    fn bottom(&self, orientation: &Orientation) -> TileSide {
-        let (flipped, rot) = orientation;
-        self.top(&(*flipped, (*rot + 2) % 4))
+    fn top(&self) -> TileSide {
+        TileSide(self.bits.slice(s![0, ..]).iter().copied().collect())
     }
 
-    fn left(&self, orientation: &Orientation) -> TileSide {
-        let (flipped, rot) = orientation;
-        self.top(&(*flipped, (rot + 1) % 4))
+    fn bottom(&self) -> TileSide {
+        TileSide(
+            self.bits
+                .slice(s![self.bits.dim().0 - 1, ..])
+                .iter()
+                .copied()
+                .collect(),
+        )
     }
 
-    fn right(&self, orientation: &Orientation) -> TileSide {
-        let (flipped, rot) = orientation;
-        self.top(&(*flipped, (rot + 3) % 4))
+    fn left(&self) -> TileSide {
+        TileSide(self.bits.slice(s![.., 0]).iter().copied().collect())
+    }
+
+    fn right(&self) -> TileSide {
+        TileSide(
+            self.bits
+                .slice(s![.., self.bits.dim().1 - 1])
+                .iter()
+                .copied()
+                .collect(),
+        )
     }
 }
 
@@ -141,50 +165,40 @@ fn solve(
 
             // Try each orientation for this tile.
             for ori in &ORIENTATIONS {
+                let tile = tile.transformed(ori);
+
                 // If any neighbor doesn't match, skip.
-                if let Some((neighbor_id, neighbor_ori)) =
+                if let Some((_, neighbor)) =
                     puzzle.get(&(empty_pos.0 + 1, empty_pos.1))
                 {
-                    let neighbor = ts.tiles.get(neighbor_id).unwrap();
-                    if neighbor.left(&neighbor_ori).reversed()
-                        != tile.right(&ori)
-                    {
+                    if neighbor.left() != tile.right() {
                         continue;
                     }
                 }
-                if let Some((neighbor_id, neighbor_ori)) =
+                if let Some((_, neighbor)) =
                     puzzle.get(&(empty_pos.0 - 1, empty_pos.1))
                 {
-                    let neighbor = ts.tiles.get(neighbor_id).unwrap();
-                    if neighbor.right(&neighbor_ori).reversed()
-                        != tile.left(&ori)
-                    {
+                    if neighbor.right() != tile.left() {
                         continue;
                     }
                 }
-                if let Some((neighbor_id, neighbor_ori)) =
+                if let Some((_, neighbor)) =
                     puzzle.get(&(empty_pos.0, empty_pos.1 + 1))
                 {
-                    let neighbor = ts.tiles.get(neighbor_id).unwrap();
-                    if neighbor.bottom(&neighbor_ori).reversed()
-                        != tile.top(&ori)
-                    {
+                    if neighbor.bottom() != tile.top() {
                         continue;
                     }
                 }
-                if let Some((neighbor_id, neighbor_ori)) =
+                if let Some((_, neighbor)) =
                     puzzle.get(&(empty_pos.0, empty_pos.1 - 1))
                 {
-                    let neighbor = ts.tiles.get(neighbor_id).unwrap();
-                    if neighbor.top(&neighbor_ori).reversed()
-                        != tile.bottom(&ori)
-                    {
+                    if neighbor.top() != tile.bottom() {
                         continue;
                     }
                 }
 
                 // Insert into puzzle; add new empty positions
-                puzzle.insert(empty_pos, (*tid, *ori));
+                puzzle.insert(empty_pos, (*tid, tile));
 
                 let mut new_empty_pos = empty_positions.clone();
                 // Push all neighboring positions. Don't bother to check if they're already
@@ -211,7 +225,8 @@ fn solve(
 pub fn part1(input: &str) -> u64 {
     let ts = TileSet::new(input);
     let mut puzzle = Puzzle::new();
-    puzzle.insert((0, 0), (*ts.tiles.keys().next().unwrap(), (false, 0)));
+    let (tid, tile) = ts.tiles.iter().next().unwrap();
+    puzzle.insert((0, 0), (*tid, tile.clone()));
     let mut empty_pos = HashSet::new();
     empty_pos.insert((1, 0));
     empty_pos.insert((-1, 0));
@@ -241,9 +256,93 @@ pub fn part1(input: &str) -> u64 {
         .product()
 }
 
+/*
+pub fn part2(input: &str) -> u64 {
+    let ts = TileSet::new(input);
+    let mut puzzle = Puzzle::new();
+    puzzle.insert((0, 0), (*ts.tiles.keys().next().unwrap(), (false, 0)));
+    let mut empty_pos = HashSet::new();
+    empty_pos.insert((1, 0));
+    empty_pos.insert((-1, 0));
+    empty_pos.insert((0, 1));
+    empty_pos.insert((0, -1));
+    if !solve(&ts, &mut puzzle, empty_pos) {
+        panic!();
+    }
+
+    // Find edges
+    let mut minx = i16::MAX;
+    let mut miny = i16::MAX;
+    let mut maxx = i16::MIN;
+    let mut maxy = i16::MIN;
+    for (x, y) in puzzle.keys() {
+        minx = std::cmp::min(minx, *x);
+        miny = std::cmp::min(miny, *y);
+        maxx = std::cmp::max(maxx, *x);
+        maxy = std::cmp::max(maxy, *y);
+    }
+
+    // Render to a flat vec, dropping borders of individual tiles.
+    let mut image = Vec::<bool>::new();
+    let width = (maxx-minx)*8;
+    let height = (maxy-miny)*8;
+    for y in 0..height {
+        for x in 0..height {
+            let tile_pos = (x/8, y/8);
+            let (tile_id, ori) = puzzle.get(&tile_pos).unwrap();
+            let tile = ts.tiles.get(tile_id).unwrap();
+            image.push(
+        }
+    }
+
+    //println!("{:?}", puzzle);
+
+    // Will panic if we ended up with a non-rectangular shape.
+    [(minx, miny), (minx, maxy), (maxx, miny), (maxx, maxy)]
+        .iter()
+        .map(|pos| puzzle.get(pos).unwrap().0 as u64)
+        .product()
+}
+*/
+
 #[cfg(test)]
 #[test]
-fn test_alignment() {
+fn test_sides() {
+    let input = "\
+Tile 2311:
+..##.#..#.
+##..#.....
+#...##..#.
+####.#...#
+##.##.###.
+##...#.###
+.#.#.#..##
+..#....#..
+###...#.#.
+..###..###";
+    let ts = TileSet::new(input);
+
+    assert_eq!(
+        ts.tiles.get(&2311).unwrap().top().0,
+        vec![0, 0, 1, 1, 0, 1, 0, 0, 1, 0]
+    );
+    assert_eq!(
+        ts.tiles.get(&2311).unwrap().left().0,
+        vec![0, 1, 1, 1, 1, 1, 0, 0, 1, 0]
+    );
+    assert_eq!(
+        ts.tiles.get(&2311).unwrap().bottom().0,
+        vec![0, 0, 1, 1, 1, 0, 0, 1, 1, 1]
+    );
+    assert_eq!(
+        ts.tiles.get(&2311).unwrap().right().0,
+        vec![0, 0, 0, 1, 0, 1, 1, 0, 0, 1]
+    );
+}
+
+#[cfg(test)]
+#[test]
+fn test_transforms() {
     let input = "\
 Tile 2311:
 ..##.#..#.
@@ -258,14 +357,42 @@ Tile 2311:
 ..###..###";
     let ts = TileSet::new(input);
     assert_eq!(
-        ts.tiles.get(&2311).unwrap().top(&(false, 0)).0,
-        0b0011010010
+        ts.tiles
+            .get(&2311)
+            .unwrap()
+            .transformed(&(false, 1))
+            .top()
+            .0,
+        vec![0, 1, 0, 0, 1, 1, 1, 1, 1, 0]
     );
     assert_eq!(
-        ts.tiles.get(&2311).unwrap().top(&(false, 1)).0,
-        0b0100111110
+        ts.tiles
+            .get(&2311)
+            .unwrap()
+            .transformed(&(false, 2))
+            .top()
+            .0,
+        vec![1, 1, 1, 0, 0, 1, 1, 1, 0, 0]
+    );
+    assert_eq!(
+        ts.tiles
+            .get(&2311)
+            .unwrap()
+            .transformed(&(false, 3))
+            .top()
+            .0,
+        vec![0, 0, 0, 1, 0, 1, 1, 0, 0, 1]
     );
 
+    assert_eq!(
+        ts.tiles.get(&2311).unwrap().transformed(&(true, 0)).top().0,
+        vec![0, 0, 1, 1, 1, 0, 0, 1, 1, 1]
+    );
+}
+
+#[cfg(test)]
+#[test]
+fn test_alignment() {
     let input = "\
 Tile 1:
 #...##.#..
@@ -293,10 +420,14 @@ Tile 2:
 ";
     let ts = TileSet::new(input);
     assert_eq!(
-        ts.tiles.get(&1).unwrap().right(&(false, 0)),
-        ts.tiles.get(&2).unwrap().left(&(false, 0)).reversed()
+        ts.tiles.get(&1).unwrap().right(),
+        ts.tiles.get(&2).unwrap().left()
     );
+}
 
+#[cfg(test)]
+#[test]
+fn test_part1() {
     let input = "\
 Tile 2311:
 ..##.#..#.
