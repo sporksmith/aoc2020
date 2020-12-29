@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::error::Error;
 use std::io::BufRead;
 
@@ -10,6 +12,7 @@ pub mod d15_recitation;
 pub mod d16_ticket;
 pub mod d17_conway;
 pub mod d18_operation;
+pub mod d19_messages;
 pub mod encoding;
 pub mod factors;
 pub mod handheld;
