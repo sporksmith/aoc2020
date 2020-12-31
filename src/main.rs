@@ -45,6 +45,7 @@ fn main() {
         "19b" => d19_messages::part2(&buf) as usize,
         "20a" => d20_jigsaw::part1(&buf) as usize,
         "20b" => d20_jigsaw::part2(&buf) as usize,
+        "21a" => d21_allergen::part1(&buf) as usize,
         _ => panic!("Bad part {}", part),
     };
     println!("{}", res);

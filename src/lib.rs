@@ -14,6 +14,7 @@ pub mod d17_conway;
 pub mod d18_operation;
 pub mod d19_messages;
 pub mod d20_jigsaw;
+pub mod d21_allergen;
 pub mod encoding;
 pub mod factors;
 pub mod handheld;
