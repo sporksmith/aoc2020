@@ -17,6 +17,7 @@ pub mod d20_jigsaw;
 pub mod d21_allergen;
 pub mod d22_crab;
 pub mod d23_cups;
+pub mod d24_lobby;
 pub mod encoding;
 pub mod factors;
 pub mod handheld;
