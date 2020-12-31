@@ -104,6 +104,11 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         c.bench_function("21a", |b| b.iter(|| d21_allergen::part1(&input)));
         c.bench_function("21b", |b| b.iter(|| d21_allergen::part2(&input)));
     }
+    {
+        let input = std::fs::read_to_string("inputs/day22").unwrap();
+        c.bench_function("22a", |b| b.iter(|| d22_crab::part1(&input)));
+        c.bench_function("22b", |b| b.iter(|| d22_crab::part2(&input)));
+    }
 }
 
 criterion_group!(benches, criterion_benchmark);

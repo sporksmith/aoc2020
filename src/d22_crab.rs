@@ -45,10 +45,9 @@ fn play_rec_game(game_num: u32, d1: Deck, d2: Deck) -> (bool, Deck) {
 
         let state: (Vec<Card>, Vec<Card>) =
             (d1.iter().copied().collect(), d2.iter().copied().collect());
-        if prev_states.contains(&state) {
+        if !prev_states.insert(state) {
             return (true, d1);
         }
-        prev_states.insert(state);
 
         if d1.is_empty() {
             return (false, d2);
