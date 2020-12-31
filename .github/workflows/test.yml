@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: cargo test
-      - run: cargo build && ./ci.sh debug
+      - run: cargo build --release && ./ci.sh release
 
   cargo-check:
     runs-on: ubuntu-latest
