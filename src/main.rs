@@ -49,6 +49,8 @@ fn main() {
         "21b" => Box::new(d21_allergen::part2(&buf)),
         "22a" => Box::new(d22_crab::part1(&buf)),
         "22b" => Box::new(d22_crab::part2(&buf)),
+        "23a" => Box::new(d23_cups::part1(&buf)),
+        "23b" => Box::new(d23_cups::part2(&buf)),
         _ => panic!("Bad part {}", part),
     };
     println!("{}", res);
