@@ -8,43 +8,45 @@ fn main() {
     stdin.read_to_string(&mut buf).unwrap();
 
     let part = std::env::args().nth(1).expect("missing part");
-    let res = match part.as_str() {
-        "7a" => bags::number_of_outer_bags_that_could_have_shiny(
+    let res: Box<dyn std::fmt::Display> = match part.as_str() {
+        "7a" => Box::new(bags::number_of_outer_bags_that_could_have_shiny(
             &bags::parse_input(Cursor::new(buf.as_bytes())).unwrap(),
-        ),
-        "7b" => bags::number_of_bags_in_shiny(
+        )),
+        "7b" => Box::new(bags::number_of_bags_in_shiny(
             &bags::parse_input(Cursor::new(buf.as_bytes())).unwrap(),
-        ),
-        "8a" => handheld::acc_at_loop(&handheld::parse_program(Cursor::new(
-            buf.as_bytes(),
-        ))) as usize,
-        "8b" => handheld::acc_after_fix(handheld::parse_program(Cursor::new(
-            buf.as_bytes(),
-        ))) as usize,
-        "9a" => encoding::part1(&encoding::parse(&buf), 25) as usize,
-        "9b" => encoding::part2(&encoding::parse(&buf), 25) as usize,
-        "10a" => adapter::part1(&adapter::parse(&buf)) as usize,
-        "10b" => adapter::part2(&adapter::parse(&buf)) as usize,
-        "11a" => seating::part1(&seating::parse(&buf)) as usize,
-        "11b" => seating::part2(&seating::parse(&buf)) as usize,
-        "12a" => d12_rain::part1(&d12_rain::parse(&buf)) as usize,
-        "12b" => d12_rain::part2(&d12_rain::parse(&buf)) as usize,
-        "13a" => d13_bus::part1(&buf) as usize,
-        "13b" => d13_bus::part2(&buf) as usize,
-        "14a" => d14_docking::part1(&buf) as usize,
-        "14b" => d14_docking::part2(&buf) as usize,
-        "15a" => d15_recitation::part1(&buf) as usize,
-        "15b" => d15_recitation::part2(&buf) as usize,
-        "16a" => d16_ticket::part1(&buf) as usize,
-        "16b" => d16_ticket::part2(&buf) as usize,
-        "17a" => d17_conway::part1(&buf) as usize,
-        "17b" => d17_conway::part2(&buf) as usize,
-        "18a" => d18_operation::part1(&buf) as usize,
-        "18b" => d18_operation::part2(&buf) as usize,
-        "19a" => d19_messages::part1(&buf) as usize,
-        "19b" => d19_messages::part2(&buf) as usize,
-        "20a" => d20_jigsaw::part1(&buf) as usize,
-        "20b" => d20_jigsaw::part2(&buf) as usize,
+        )),
+        "8a" => Box::new(handheld::acc_at_loop(&handheld::parse_program(
+            Cursor::new(buf.as_bytes()),
+        ))),
+        "8b" => Box::new(handheld::acc_after_fix(handheld::parse_program(
+            Cursor::new(buf.as_bytes()),
+        ))),
+        "9a" => Box::new(encoding::part1(&encoding::parse(&buf), 25)),
+        "9b" => Box::new(encoding::part2(&encoding::parse(&buf), 25)),
+        "10a" => Box::new(adapter::part1(&adapter::parse(&buf))),
+        "10b" => Box::new(adapter::part2(&adapter::parse(&buf))),
+        "11a" => Box::new(seating::part1(&seating::parse(&buf))),
+        "11b" => Box::new(seating::part2(&seating::parse(&buf))),
+        "12a" => Box::new(d12_rain::part1(&d12_rain::parse(&buf))),
+        "12b" => Box::new(d12_rain::part2(&d12_rain::parse(&buf))),
+        "13a" => Box::new(d13_bus::part1(&buf)),
+        "13b" => Box::new(d13_bus::part2(&buf)),
+        "14a" => Box::new(d14_docking::part1(&buf)),
+        "14b" => Box::new(d14_docking::part2(&buf)),
+        "15a" => Box::new(d15_recitation::part1(&buf)),
+        "15b" => Box::new(d15_recitation::part2(&buf)),
+        "16a" => Box::new(d16_ticket::part1(&buf)),
+        "16b" => Box::new(d16_ticket::part2(&buf)),
+        "17a" => Box::new(d17_conway::part1(&buf)),
+        "17b" => Box::new(d17_conway::part2(&buf)),
+        "18a" => Box::new(d18_operation::part1(&buf)),
+        "18b" => Box::new(d18_operation::part2(&buf)),
+        "19a" => Box::new(d19_messages::part1(&buf)),
+        "19b" => Box::new(d19_messages::part2(&buf)),
+        "20a" => Box::new(d20_jigsaw::part1(&buf)),
+        "20b" => Box::new(d20_jigsaw::part2(&buf)),
+        "21a" => Box::new(d21_allergen::part1(&buf)),
+        "21b" => Box::new(d21_allergen::part2(&buf)),
         _ => panic!("Bad part {}", part),
     };
     println!("{}", res);
