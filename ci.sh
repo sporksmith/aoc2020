@@ -78,3 +78,6 @@ unified_test 19 b 246
 unified_test 20 a 29293767579581
 unified_test 20 b 1989
 unified_test 21 a 1958
+unified_test 21 b xxscc,mjmqst,gzxnc,vvqj,trnnvn,gbcjqbm,dllbjr,nckqzsg
+unified_test 22 a 32489
+unified_test 22 b 35676

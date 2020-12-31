@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{HashSet, VecDeque};
 
 type Card = u8;
 type Deck = VecDeque<Card>;
@@ -29,6 +29,61 @@ fn play_game(d1: Deck, d2: Deck) -> Deck {
     }
 }
 
+// Returns true iff player 1 wins, and returns winning deck.
+fn play_rec_game(game_num: u32, d1: Deck, d2: Deck) -> (bool, Deck) {
+    let mut prev_states = HashSet::new();
+    let mut d1 = d1;
+    let mut d2 = d2;
+    //let mut round_num = 1;
+    loop {
+        /*
+        println!("Game {} Round {}", game_num, round_num);
+        println!("p1: {:?}", d1);
+        println!("p2: {:?}", d2);
+        round_num += 1;
+        */
+
+        let state: (Vec<Card>, Vec<Card>) =
+            (d1.iter().copied().collect(), d2.iter().copied().collect());
+        if prev_states.contains(&state) {
+            return (true, d1);
+        }
+        prev_states.insert(state);
+
+        if d1.is_empty() {
+            return (false, d2);
+        }
+        if d2.is_empty() {
+            return (true, d1);
+        }
+
+        let c1 = d1.pop_front().unwrap();
+        let c2 = d2.pop_front().unwrap();
+
+        if c1 as usize <= d1.len() && c2 as usize <= d2.len() {
+            let d1new = d1.iter().take(c1 as usize).copied().collect::<Deck>();
+            let d2new = d2.iter().take(c2 as usize).copied().collect::<Deck>();
+            let (p1_wins, _) = play_rec_game(game_num + 1, d1new, d2new);
+            if p1_wins {
+                d1.push_back(c1);
+                d1.push_back(c2);
+            } else {
+                d2.push_back(c2);
+                d2.push_back(c1);
+            }
+        } else {
+            // High card wins
+            if c1 > c2 {
+                d1.push_back(c1);
+                d1.push_back(c2);
+            } else {
+                d2.push_back(c2);
+                d2.push_back(c1);
+            }
+        }
+    }
+}
+
 fn score_deck(d: &Deck) -> u64 {
     let mut multiplier = 1;
     let mut score = 0;
@@ -56,6 +111,12 @@ fn parse(input: &str) -> (Deck, Deck) {
 pub fn part1(input: &str) -> u64 {
     let (d1, d2) = parse(input);
     let winner = play_game(d1, d2);
+    score_deck(&winner)
+}
+
+pub fn part2(input: &str) -> u64 {
+    let (d1, d2) = parse(input);
+    let (_, winner) = play_rec_game(1, d1, d2);
     score_deck(&winner)
 }
 
@@ -99,5 +160,7 @@ Player 2:
         );
         assert_eq!(score_deck(&play_game(d1, d2)), 306);
         assert_eq!(part1(INPUT), 306);
+
+        assert_eq!(part2(INPUT), 291);
     }
 }
