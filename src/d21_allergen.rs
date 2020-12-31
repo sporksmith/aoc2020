@@ -133,12 +133,31 @@ fn count_ingredients(foods: &[Food], ingredients: &HashSet<Ingredient>) -> u64 {
         .sum()
 }
 
+fn encode_unsafe_ingredients<'a>(
+    unsafe_ingredients: &'a HashMap<Ingredient<'a>, Allergen<'a>>,
+) -> String {
+    let mut pairs = unsafe_ingredients.iter().collect::<Vec<_>>();
+    pairs.sort_by(|lhs, rhs| lhs.1 .0.cmp(rhs.1 .0));
+    pairs
+        .iter()
+        .map(|(i, _)| i.0)
+        .collect::<Vec<_>>()
+        .as_slice()
+        .join(",")
+}
+
 pub fn part1(input: &str) -> u64 {
     let foods = parse_foods(input);
     let unsafe_ingredients = id_unsafe_ingredients(&foods);
     let safe_ingredients =
         id_safe_ingredients(&foods, unsafe_ingredients.keys());
     count_ingredients(&foods, &safe_ingredients)
+}
+
+pub fn part2(input: &str) -> String {
+    let foods = parse_foods(input);
+    let unsafe_ingredients = id_unsafe_ingredients(&foods);
+    encode_unsafe_ingredients(&unsafe_ingredients)
 }
 
 #[cfg(test)]
@@ -197,7 +216,15 @@ sqjhc mxmxvkd sbzzf (contains fish)";
 
         assert_eq!(count_ingredients(&foods, &safe_ingredients), 5);
 
-        // e2e
+        // part 1 e2e
         assert_eq!(part1(INPUT), 5);
+
+        assert_eq!(
+            &encode_unsafe_ingredients(&unsafe_ingredients),
+            "mxmxvkd,sqjhc,fvjkl"
+        );
+
+        // part 2 e2e
+        assert_eq!(&part2(INPUT), "mxmxvkd,sqjhc,fvjkl");
     }
 }
