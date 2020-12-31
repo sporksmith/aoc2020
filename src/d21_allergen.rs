@@ -46,7 +46,9 @@ fn parse_foods(input: &str) -> Vec<Food> {
     foods
 }
 
-fn id_safe_ingredients<'a>(foods: &'a [Food]) -> HashSet<Ingredient<'a>> {
+fn id_unsafe_ingredients<'a>(
+    foods: &'a [Food],
+) -> HashMap<Ingredient<'a>, Allergen<'a>> {
     let mut allergens2ingredients =
         HashMap::<Allergen, HashSet<Ingredient>>::new();
     for food in foods {
@@ -91,6 +93,19 @@ fn id_safe_ingredients<'a>(foods: &'a [Food]) -> HashSet<Ingredient<'a>> {
         }
     }
 
+    let mut res = HashMap::new();
+    for (allergen, mut ingredients) in allergens2ingredients {
+        assert_eq!(ingredients.len(), 1);
+        let ing = ingredients.drain().next().unwrap();
+        res.insert(ing, allergen);
+    }
+    res
+}
+
+fn id_safe_ingredients<'a, It: Iterator<Item = &'a Ingredient<'a>>>(
+    foods: &'a [Food],
+    unsafe_ingredients: It,
+) -> HashSet<Ingredient<'a>> {
     // Collect all ingredients
     let mut res = HashSet::<Ingredient>::new();
     for food in foods {
@@ -99,11 +114,9 @@ fn id_safe_ingredients<'a>(foods: &'a [Food]) -> HashSet<Ingredient<'a>> {
         }
     }
 
-    // Remove those still under suspicion
-    for ingredients in allergens2ingredients.values() {
-        for ing in ingredients {
-            res.remove(ing);
-        }
+    // Remove unsafe ingredients
+    for ing in unsafe_ingredients {
+        res.remove(ing);
     }
     res
 }
@@ -122,7 +135,9 @@ fn count_ingredients(foods: &[Food], ingredients: &HashSet<Ingredient>) -> u64 {
 
 pub fn part1(input: &str) -> u64 {
     let foods = parse_foods(input);
-    let safe_ingredients = id_safe_ingredients(&foods);
+    let unsafe_ingredients = id_unsafe_ingredients(&foods);
+    let safe_ingredients =
+        id_safe_ingredients(&foods, unsafe_ingredients.keys());
     count_ingredients(&foods, &safe_ingredients)
 }
 
@@ -161,7 +176,17 @@ sqjhc mxmxvkd sbzzf (contains fish)";
             .collect::<Vec<_>>()
         );
 
-        let safe_ingredients = id_safe_ingredients(&foods);
+        let unsafe_ingredients = id_unsafe_ingredients(&foods);
+        assert_eq!(
+            unsafe_ingredients,
+            [("mxmxvkd", "dairy"), ("sqjhc", "fish"), ("fvjkl", "soy")]
+                .iter()
+                .map(|(i, a)| (Ingredient(i), Allergen(a)))
+                .collect::<HashMap<_, _>>()
+        );
+
+        let safe_ingredients =
+            id_safe_ingredients(&foods, unsafe_ingredients.keys());
         assert_eq!(
             safe_ingredients,
             ["kfcds", "nhms", "sbzzf", "trh"]
