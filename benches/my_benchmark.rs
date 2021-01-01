@@ -119,6 +119,10 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         c.bench_function("24a", |b| b.iter(|| d24_lobby::part1(&input)));
         c.bench_function("24b", |b| b.iter(|| d24_lobby::part2(&input)));
     }
+    {
+        let input = std::fs::read_to_string("inputs/day25").unwrap();
+        c.bench_function("25a", |b| b.iter(|| d25_combo::part1(&input)));
+    }
 }
 
 criterion_group!(benches, criterion_benchmark);

@@ -53,6 +53,7 @@ fn main() {
         "23b" => Box::new(d23_cups::part2(&buf)),
         "24a" => Box::new(d24_lobby::part1(&buf)),
         "24b" => Box::new(d24_lobby::part2(&buf)),
+        "25a" => Box::new(d25_combo::part1(&buf)),
         _ => panic!("Bad part {}", part),
     };
     println!("{}", res);
